@@ -28,6 +28,10 @@
 
 ## 🎯 Sobre o Projeto
 
+> **Status**: 🚧 **EM DESENVOLVIMENTO** | **Phase 2 COMPLETA** ✅  
+> **Última Atualização**: 09/12/2025  
+> **Progresso Geral**: ⬛⬛⬛⬜⬜ 60% (3 de 5 fases concluídas)
+
 O **SGIR (Sistema de Gestão Integrada de Recursos)** é uma solução completa desenvolvida em **C#/.NET 8** com **SQL Server** que unifica:
 
 - 📊 **Planejamento de Projetos e Atividades** (Ordens de Serviço)
