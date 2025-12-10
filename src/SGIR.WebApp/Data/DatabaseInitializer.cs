@@ -202,22 +202,20 @@ public static class DatabaseInitializer
             new()
             {
                 CpfColaborador = "123.456.789-00",
-                TipoCertificacao = "NR-12",
-                DataEmissao = DateTime.Today.AddMonths(-6),
-                DataValidade = DateTime.Today.AddMonths(18),
-                NumeroCertificado = "NR12-2024-0001",
-                OrgaoEmissor = "SENAI",
-                Status = "VÁLIDA"
+                NR12Validade = DateTime.Today.AddMonths(18),
+                ASOValidade = DateTime.Today.AddMonths(24)
             },
             new()
             {
                 CpfColaborador = "987.654.321-00",
-                TipoCertificacao = "NR-35",
-                DataEmissao = DateTime.Today.AddYears(-1),
-                DataValidade = DateTime.Today.AddDays(-10),
-                NumeroCertificado = "NR35-2023-0042",
-                OrgaoEmissor = "SENAI",
-                Status = "VENCIDA"
+                NR35Validade = DateTime.Today.AddDays(-10),
+                ASOValidade = DateTime.Today.AddMonths(6)
+            },
+            new()
+            {
+                CpfColaborador = "555.666.777-00",
+                NR10Validade = DateTime.Today.AddMonths(12),
+                ASOValidade = DateTime.Today.AddMonths(18)
             }
         };
 
@@ -233,7 +231,8 @@ public static class DatabaseInitializer
                 TipoEPI = "Capacete",
                 CA = "12345",
                 DataEntrega = DateTime.Today.AddMonths(-2),
-                DataValidade = DateTime.Today.AddMonths(10),
+                ValidadeCA = DateTime.Today.AddMonths(10),
+                VidaUtilDias = 365,
                 Observacoes = "Modelo classe B"
             },
             new()
@@ -242,8 +241,19 @@ public static class DatabaseInitializer
                 TipoEPI = "Cinto de segurança",
                 CA = "67890",
                 DataEntrega = DateTime.Today.AddMonths(-1),
-                DataValidade = DateTime.Today.AddMonths(5),
+                ValidadeCA = DateTime.Today.AddMonths(5),
+                VidaUtilDias = 180,
                 Observacoes = "Substituir junto com renovação NR-35"
+            },
+            new()
+            {
+                CpfColaborador = "555.666.777-00",
+                TipoEPI = "Luvas isolantes",
+                CA = "54321",
+                DataEntrega = DateTime.Today.AddMonths(-1),
+                ValidadeCA = DateTime.Today.AddMonths(11),
+                VidaUtilDias = 90,
+                Observacoes = "Teste elétrico realizado"
             }
         };
 
@@ -285,7 +295,8 @@ public static class DatabaseInitializer
                 Responsavel = "Juliana Ferreira",
                 LocalOrigem = "Almoxarifado Central",
                 LocalDestino = "Planta Curitiba",
-                Observacao = "Liberação para OS 1001"
+                Observacoes = "Liberação para OS 1001",
+                ProjetoId = 1001
             },
             new()
             {
@@ -297,7 +308,7 @@ public static class DatabaseInitializer
                 Responsavel = "Juliana Ferreira",
                 LocalOrigem = "Fornecedor",
                 LocalDestino = "Oficina",
-                Observacao = "Reposição de estoque"
+                Observacoes = "Reposição de estoque"
             }
         };
 
