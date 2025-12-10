@@ -25,6 +25,10 @@ public class SGIRDbContext : DbContext
     public DbSet<AnaliseDeficit> AnalisesDeficit { get; set; }
     public DbSet<CompraAutomatica> ComprasAutomaticas { get; set; }
     public DbSet<CustoOperacional> CustosOperacionais { get; set; }
+    public DbSet<CaixaFerramentas> CaixasFerramentas { get; set; }
+    public DbSet<CaixaItem> CaixasItens { get; set; }
+    public DbSet<Carrinho> Carrinhos { get; set; }
+    public DbSet<CarrinhoItem> CarrinhosItens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -228,6 +232,58 @@ public class SGIRDbContext : DbContext
             
             entity.HasIndex(e => new { e.ProjetoId, e.TipoCusto });
             entity.HasIndex(e => e.DataLancamento);
+        });
+
+        // Configuração de CaixaFerramentas
+        modelBuilder.Entity<CaixaFerramentas>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Descricao).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Tipo).IsRequired().HasMaxLength(50).HasDefaultValue("MECANICA");
+            entity.Property(e => e.LocalAtual).HasMaxLength(200);
+            
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            
+            entity.HasMany(e => e.Itens)
+                .WithOne(i => i.Caixa)
+                .HasForeignKey(i => i.CaixaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configuração de CaixaItem
+        modelBuilder.Entity<CaixaItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Quantidade).HasColumnType("decimal(18,3)");
+            
+            entity.HasIndex(e => new { e.CaixaId, e.ItemEstoqueId }).IsUnique();
+        });
+
+        // Configuração de Carrinho
+        modelBuilder.Entity<Carrinho>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Descricao).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.LocalAtual).HasMaxLength(200);
+            
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            
+            entity.HasMany(e => e.Itens)
+                .WithOne(i => i.Carrinho)
+                .HasForeignKey(i => i.CarrinhoId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configuração de CarrinhoItem
+        modelBuilder.Entity<CarrinhoItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TipoItem).IsRequired().HasMaxLength(50).HasDefaultValue("ITEM");
+            entity.Property(e => e.Quantidade).HasColumnType("decimal(18,3)");
+            
+            entity.HasIndex(e => new { e.CarrinhoId, e.TipoItem, e.ItemEstoqueId });
         });
 
         // Seed Data (dados iniciais para teste)
