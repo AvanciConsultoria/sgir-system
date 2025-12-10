@@ -19,26 +19,41 @@ RUN dotnet build "SGIR.WebApp.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "SGIR.WebApp.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
-WORKDIR /app
-
-# Install EF Core tools for migrations
-RUN dotnet tool install --global dotnet-ef
+# Install EF Core tools in SDK stage (onde o SDK existe)
+RUN dotnet tool install --global dotnet-ef --version 8.0.0
 ENV PATH="${PATH}:/root/.dotnet/tools"
+
+# Create migrations bundle in build stage
+WORKDIR /src
+RUN dotnet ef migrations bundle --project SGIR.Infrastructure/SGIR.Infrastructure.csproj \
+    --startup-project SGIR.WebApp/SGIR.WebApp.csproj \
+    --output /app/publish/efbundle -r linux-x64 --self-contained || echo "Migrations bundle skipped"
+
+# Runtime stage - Usa SDK ao invés de aspnet para ter ferramentas disponíveis
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final
+WORKDIR /app
 
 COPY --from=publish /app/publish .
 
-# Create entrypoint script
+# Create entrypoint script simplificado
 RUN echo '#!/bin/bash\n\
 set -e\n\
-echo "Waiting for SQL Server..."\n\
-sleep 10\n\
-echo "Running migrations..."\n\
-dotnet ef database update --project /app/SGIR.Infrastructure.dll || true\n\
-echo "Starting application..."\n\
+echo "=== SGIR System - Starting ==="\n\
+echo "Waiting for SQL Server to be ready..."\n\
+for i in {1..30}; do\n\
+  if timeout 1 bash -c "</dev/tcp/sqlserver/1433" 2>/dev/null; then\n\
+    echo "SQL Server is ready!"\n\
+    break\n\
+  fi\n\
+  echo "Waiting... ($i/30)"\n\
+  sleep 2\n\
+done\n\
+echo "Starting SGIR WebApp..."\n\
 exec dotnet SGIR.WebApp.dll' > /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE 80 443
+
+ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_ENVIRONMENT=Development
 
 ENTRYPOINT ["/entrypoint.sh"]
