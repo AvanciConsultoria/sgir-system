@@ -18,6 +18,8 @@ https://github.com/AvanciConsultoria/sgir-system/raw/main/install-windows.ps1
 - Selecione: **"Executar com PowerShell"**
 - Se aparecer aviso de segurança, clique em **"Sim"** ou **"Executar mesmo assim"**
 
+⚠️ **Erro "scripts desabilitados"?** → Veja [TROUBLESHOOTING_WINDOWS.md](TROUBLESHOOTING_WINDOWS.md)
+
 **3. Pronto!** ✅
 - O instalador vai:
   - ✅ Baixar e instalar .NET 8
@@ -207,9 +209,21 @@ http://localhost:5000
 ## 📞 **SUPORTE**
 
 **Problemas durante instalação?**
-- Tire print da tela do erro
-- Copie a mensagem completa
-- Entre em contato: favanci@hotmail.com
+
+1. 📖 **Consulte os guias de troubleshooting:**
+   - Windows: [TROUBLESHOOTING_WINDOWS.md](TROUBLESHOOTING_WINDOWS.md)
+   - Docker: Veja logs com `docker-compose logs -f`
+
+2. 💬 **Problemas comuns resolvidos:**
+   - ✅ PowerShell não executa scripts
+   - ✅ Docker build falha com "No .NET SDKs"
+   - ✅ SQL Server não conecta
+   - ✅ Porta 5000 já em uso
+
+3. 📧 **Suporte direto:**
+   - Tire print da tela do erro
+   - Copie a mensagem completa
+   - Entre em contato: favanci@hotmail.com
 
 **Repositório:** https://github.com/AvanciConsultoria/sgir-system
 
