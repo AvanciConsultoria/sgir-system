@@ -12,11 +12,46 @@ public static class DatabaseInitializer
 {
     public static async Task SeedAsync(SGIRDbContext context)
     {
-        await context.Database.EnsureCreatedAsync();
-
-        if (await context.Projetos.AnyAsync())
+        var isSqlite = context.Database.ProviderName?.Contains("Sqlite") ?? false;
+        
+        Console.WriteLine($"🔧 DatabaseInitializer: Provider = {context.Database.ProviderName}");
+        Console.WriteLine($"🔧 DatabaseInitializer: IsSqlite = {isSqlite}");
+        
+        try
         {
-            return; // já existe dado real ou seed anterior
+            // Garantir que o banco de dados e todas as tabelas sejam criadas
+            Console.WriteLine("🔧 Calling EnsureCreatedAsync...");
+            var created = await context.Database.EnsureCreatedAsync();
+            Console.WriteLine($"🔧 EnsureCreatedAsync returned: {created} (true = created, false = already existed)");
+
+            // Verificar se já existem dados (evitar seed duplicado)
+            Console.WriteLine("🔧 Checking if data already exists...");
+            if (await context.Projetos.AnyAsync())
+            {
+                Console.WriteLine("✅ Database already has data, skipping seed.");
+                return; // já existe dado real ou seed anterior
+            }
+            
+            Console.WriteLine("📦 No data found, proceeding with seed...");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error during database check: {ex.Message}");
+            Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+            
+            // Se falhar ao verificar, provavelmente o banco precisa ser recriado
+            // Isso pode acontecer se o schema estiver quebrado
+            if (isSqlite)
+            {
+                Console.WriteLine("🔧 Attempting to recreate SQLite database...");
+                await context.Database.EnsureDeletedAsync();
+                await context.Database.EnsureCreatedAsync();
+                Console.WriteLine("✅ SQLite database recreated successfully.");
+            }
+            else
+            {
+                throw; // Para SQL Server, deixar o erro subir
+            }
         }
 
         // Itens de estoque
