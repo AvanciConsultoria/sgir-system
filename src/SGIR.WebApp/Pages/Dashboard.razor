@@ -1,10 +1,5 @@
 @page "/"
 @page "/dashboard"
-@using Microsoft.EntityFrameworkCore
-@using SGIR.Core.Entities
-@using SGIR.Infrastructure.Data
-@inject SGIRDbContext DbContext
-@inject NavigationManager Navigation
 
 <PageTitle>Dashboard - SGIR</PageTitle>
 
@@ -19,237 +14,77 @@
     <!-- Cards de Estatísticas -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3" style="cursor: pointer;" @onclick="@(() => Navigation.NavigateTo("/projetos"))">
+            <div class="card text-white bg-primary mb-3">
                 <div class="card-body">
                     <h5 class="card-title">📋 Projetos</h5>
-                    <h2 class="mb-0">@TotalProjetos</h2>
-                    <small>Projetos cadastrados</small>
+                    <h2 class="mb-0">--</h2>
+                    <small>Em breve</small>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card text-white bg-success mb-3" style="cursor: pointer;" @onclick="@(() => Navigation.NavigateTo("/colaboradores"))">
+            <div class="card text-white bg-success mb-3">
                 <div class="card-body">
                     <h5 class="card-title">👥 Colaboradores</h5>
-                    <h2 class="mb-0">@ColaboradoresAptos / @TotalColaboradores</h2>
-                    <small>Aptos / Total</small>
+                    <h2 class="mb-0">--</h2>
+                    <small>Em breve</small>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card text-white bg-warning mb-3" style="cursor: pointer;" @onclick="@(() => Navigation.NavigateTo("/ferramentas"))">
+            <div class="card text-white bg-warning mb-3">
                 <div class="card-body">
                     <h5 class="card-title">📦 Estoque</h5>
-                    <h2 class="mb-0">@TotalFerramentas</h2>
-                    <small>Itens cadastrados</small>
+                    <h2 class="mb-0">--</h2>
+                    <small>Em breve</small>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card text-white bg-danger mb-3" style="cursor: pointer;" @onclick="@(() => Navigation.NavigateTo("/compras"))">
+            <div class="card text-white bg-danger mb-3">
                 <div class="card-body">
                     <h5 class="card-title">🛒 Compras</h5>
-                    <h2 class="mb-0">@ComprasPendentes</h2>
-                    <small>Pedidos pendentes</small>
+                    <h2 class="mb-0">--</h2>
+                    <small>Em breve</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Informações de Status -->
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-warning text-white">
-                    <h5 class="mb-0">⚠️ Certificações Vencendo (30 dias)</h5>
-                </div>
-                <div class="card-body">
-                    @if (CertificacoesVencendo.Any())
-                    {
-                        <table class="table table-sm table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Colaborador</th>
-                                    <th>Certificação</th>
-                                    <th>Validade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var cert in CertificacoesVencendo)
-                                {
-                                    <tr>
-                                        <td>@cert.Colaborador?.Nome</td>
-                                        <td><span class="badge bg-warning text-dark">@cert.TipoCertificacao</span></td>
-                                        <td>@cert.DataValidade.ToString("dd/MM/yyyy")</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                    else
-                    {
-                        <div class="alert alert-success mb-0">
-                            ✅ Nenhuma certificação vencendo nos próximos 30 dias
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">📊 Estatísticas Rápidas</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            🔧 Caixas de Ferramentas
-                            <span class="badge bg-primary rounded-pill">@TotalCaixas</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            🛒 Carrinhos
-                            <span class="badge bg-primary rounded-pill">@TotalCarrinhos</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            💰 Custos Operacionais
-                            <span class="badge bg-success rounded-pill">@TotalCustos</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            📈 Análises de Déficit
-                            <span class="badge bg-info rounded-pill">@TotalAnalises</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Ações Rápidas -->
+    <!-- Bem-vindo -->
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">⚡ Ações Rápidas</h5>
+                    <h5 class="mb-0">✅ Sistema SGIR Operacional</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-2">
-                            <button class="btn btn-primary w-100" @onclick="@(() => Navigation.NavigateTo("/projetos"))">
-                                ➕ Novo Projeto
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <button class="btn btn-success w-100" @onclick="@(() => Navigation.NavigateTo("/colaboradores"))">
-                                ➕ Novo Colaborador
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <button class="btn btn-warning w-100" @onclick="@(() => Navigation.NavigateTo("/ferramentas"))">
-                                ➕ Nova Ferramenta
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <button class="btn btn-info w-100" @onclick="@(() => Navigation.NavigateTo("/analises"))">
-                                📊 Análise de Déficit
-                            </button>
-                        </div>
+                    <h4>Bem-vindo ao SGIR!</h4>
+                    <p>O sistema está funcionando corretamente. Use o menu lateral para navegar entre os módulos.</p>
+                    
+                    <h5 class="mt-4">📋 Módulos Disponíveis:</h5>
+                    <ul>
+                        <li><strong>Ferramentas</strong>: Gerenciamento de ferramentas e equipamentos</li>
+                        <li><strong>Caixas</strong>: Organização de caixas de ferramentas</li>
+                        <li><strong>Carrinhos</strong>: Gestão de carrinhos (em breve)</li>
+                        <li><strong>Projetos</strong>: Controle de projetos (em breve)</li>
+                        <li><strong>Colaboradores</strong>: Gestão de pessoas (em breve)</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <strong>🚧 Sistema em desenvolvimento</strong><br>
+                        Algumas funcionalidades ainda estão sendo implementadas. 
+                        As páginas de Ferramentas e Caixas já estão totalmente funcionais!
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    @if (IsLoading)
-    {
-        <div class="row mt-4">
-            <div class="col-12 text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Carregando...</span>
-                </div>
-                <p class="mt-2">Carregando dados...</p>
-            </div>
-        </div>
-    }
 </div>
 
 @code {
-    private bool IsLoading = true;
-    
-    private int TotalProjetos = 0;
-    private int TotalColaboradores = 0;
-    private int ColaboradoresAptos = 0;
-    private int TotalFerramentas = 0;
-    private int ComprasPendentes = 0;
-    private int TotalCaixas = 0;
-    private int TotalCarrinhos = 0;
-    private int TotalCustos = 0;
-    private int TotalAnalises = 0;
-    
-    private List<Certificacao> CertificacoesVencendo = new();
-    
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            IsLoading = true;
-            await CarregarEstatisticas();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro ao carregar dashboard: {ex.Message}");
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-    
-    private async Task CarregarEstatisticas()
-    {
-        try
-        {
-            // Projetos
-            TotalProjetos = await DbContext.Projetos.CountAsync();
-            
-            // Colaboradores
-            TotalColaboradores = await DbContext.Colaboradores.CountAsync();
-            var hoje = DateTime.Today;
-            var colaboradoresComCertificacoesValidas = await DbContext.Colaboradores
-                .Include(c => c.Certificacoes)
-                .Where(c => c.Certificacoes.Any(cert => cert.DataValidade >= hoje))
-                .CountAsync();
-            ColaboradoresAptos = colaboradoresComCertificacoesValidas;
-            
-            // Ferramentas
-            TotalFerramentas = await DbContext.ItensEstoque.CountAsync();
-            
-            // Compras
-            ComprasPendentes = await DbContext.ComprasAutomaticas
-                .Where(c => c.Status == SGIR.Core.Enums.StatusCompra.Pendente)
-                .CountAsync();
-            
-            // Caixas, Carrinhos, Custos, Análises
-            TotalCaixas = await DbContext.CaixasFerramentas.CountAsync();
-            TotalCarrinhos = await DbContext.Carrinhos.CountAsync();
-            TotalCustos = await DbContext.CustosOperacionais.CountAsync();
-            TotalAnalises = await DbContext.AnalisesDeficit.CountAsync();
-            
-            // Certificações vencendo nos próximos 30 dias
-            var dataLimite = hoje.AddDays(30);
-            CertificacoesVencendo = await DbContext.Certificacoes
-                .Include(c => c.Colaborador)
-                .Where(c => c.DataValidade >= hoje && c.DataValidade <= dataLimite)
-                .OrderBy(c => c.DataValidade)
-                .Take(10)
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro ao carregar estatísticas: {ex.Message}");
-        }
-    }
+    // Dashboard simples - estatísticas serão implementadas posteriormente
 }
