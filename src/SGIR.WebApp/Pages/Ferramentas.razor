@@ -1,0 +1,308 @@
+@page "/ferramentas"
+@using SGIR.Core.Entities
+@using SGIR.Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@inject SGIRDbContext DbContext
+@inject IJSRuntime JS
+
+<PageTitle>Ferramentas e Equipamentos</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>
+                <span class="oi oi-wrench" aria-hidden="true"></span>
+                Ferramentas e Equipamentos
+            </h2>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="AbrirModalNovo">
+                <span class="oi oi-plus" aria-hidden="true"></span>
+                Novo Item
+            </button>
+        </div>
+    </div>
+
+    @if (loading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" placeholder="Buscar..." @bind="filtro" @bind:event="oninput" />
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" @bind="categoriaFiltro">
+                            <option value="">Todas as Categorias</option>
+                            @foreach (var cat in categorias)
+                            {
+                                <option value="@cat">@cat</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Estoque</th>
+                                <th>Unidade</th>
+                                <th>Local</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ItensFiltrados)
+                            {
+                                <tr>
+                                    <td>@item.Id</td>
+                                    <td>@item.Descricao</td>
+                                    <td>@item.Categoria</td>
+                                    <td>
+                                        <span class="badge @(item.EstoqueAbaixoMinimo() ? "bg-danger" : "bg-success")">
+                                            @item.EstoqueAtual
+                                        </span>
+                                    </td>
+                                    <td>@item.Unidade</td>
+                                    <td>@item.LocalPosse</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" @onclick="() => AbrirModalEditar(item)">
+                                            <span class="oi oi-pencil"></span>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => Excluir(item)">
+                                            <span class="oi oi-trash"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal -->
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(itemAtual.Id == 0 ? "Novo Item" : "Editar Item")</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="itemAtual" OnValidSubmit="Salvar">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Descrição *</label>
+                                <InputText class="form-control" @bind-Value="itemAtual.Descricao" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Categoria</label>
+                                <InputText class="form-control" @bind-Value="itemAtual.Categoria" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Fabricante</label>
+                                <InputText class="form-control" @bind-Value="itemAtual.Fabricante" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Modelo/PN</label>
+                                <InputText class="form-control" @bind-Value="itemAtual.ModeloPN" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Estoque Atual *</label>
+                                <InputNumber class="form-control" @bind-Value="itemAtual.EstoqueAtual" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Estoque Mínimo</label>
+                                <InputNumber class="form-control" @bind-Value="itemAtual.EstoqueMinimo" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Unidade *</label>
+                                <InputText class="form-control" @bind-Value="itemAtual.Unidade" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Local/Posse</label>
+                                <InputText class="form-control" @bind-Value="itemAtual.LocalPosse" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Valor Unitário (R$)</label>
+                                <InputNumber class="form-control" @bind-Value="itemAtual.ValorUnitario" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <InputTextArea class="form-control" rows="3" @bind-Value="itemAtual.OBS" />
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Salvar</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ItemEstoque> itens = new();
+    private List<string> categorias = new();
+    private bool loading = true;
+    private bool mostrarModal = false;
+    private ItemEstoque itemAtual = new();
+    private string filtro = "";
+    private string categoriaFiltro = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    private async Task CarregarDados()
+    {
+        loading = true;
+        itens = await DbContext.ItensEstoque.ToListAsync();
+        categorias = itens.Where(i => !string.IsNullOrEmpty(i.Categoria))
+            .Select(i => i.Categoria!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+        loading = false;
+    }
+
+    private IEnumerable<ItemEstoque> ItensFiltrados
+    {
+        get
+        {
+            var resultado = itens.AsEnumerable();
+            
+            if (!string.IsNullOrWhiteSpace(filtro))
+            {
+                resultado = resultado.Where(i => 
+                    i.Descricao.Contains(filtro, StringComparison.OrdinalIgnoreCase) ||
+                    (i.Fabricante?.Contains(filtro, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (i.ModeloPN?.Contains(filtro, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+            
+            if (!string.IsNullOrWhiteSpace(categoriaFiltro))
+            {
+                resultado = resultado.Where(i => i.Categoria == categoriaFiltro);
+            }
+            
+            return resultado.OrderBy(i => i.Descricao);
+        }
+    }
+
+    private void AbrirModalNovo()
+    {
+        itemAtual = new ItemEstoque { Unidade = "UN", EstoqueAtual = 0 };
+        mostrarModal = true;
+    }
+
+    private void AbrirModalEditar(ItemEstoque item)
+    {
+        itemAtual = new ItemEstoque
+        {
+            Id = item.Id,
+            Descricao = item.Descricao,
+            Categoria = item.Categoria,
+            Fabricante = item.Fabricante,
+            ModeloPN = item.ModeloPN,
+            Unidade = item.Unidade,
+            EstoqueAtual = item.EstoqueAtual,
+            EstoqueMinimo = item.EstoqueMinimo,
+            LocalPosse = item.LocalPosse,
+            ValorUnitario = item.ValorUnitario,
+            OBS = item.OBS
+        };
+        mostrarModal = true;
+    }
+
+    private void FecharModal()
+    {
+        mostrarModal = false;
+        itemAtual = new();
+    }
+
+    private async Task Salvar()
+    {
+        try
+        {
+            if (itemAtual.Id == 0)
+            {
+                DbContext.ItensEstoque.Add(itemAtual);
+            }
+            else
+            {
+                var itemExistente = await DbContext.ItensEstoque.FindAsync(itemAtual.Id);
+                if (itemExistente != null)
+                {
+                    itemExistente.Descricao = itemAtual.Descricao;
+                    itemExistente.Categoria = itemAtual.Categoria;
+                    itemExistente.Fabricante = itemAtual.Fabricante;
+                    itemExistente.ModeloPN = itemAtual.ModeloPN;
+                    itemExistente.Unidade = itemAtual.Unidade;
+                    itemExistente.EstoqueAtual = itemAtual.EstoqueAtual;
+                    itemExistente.EstoqueMinimo = itemAtual.EstoqueMinimo;
+                    itemExistente.LocalPosse = itemAtual.LocalPosse;
+                    itemExistente.ValorUnitario = itemAtual.ValorUnitario;
+                    itemExistente.OBS = itemAtual.OBS;
+                }
+            }
+            
+            await DbContext.SaveChangesAsync();
+            await CarregarDados();
+            FecharModal();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Erro ao salvar: {ex.Message}");
+        }
+    }
+
+    private async Task Excluir(ItemEstoque item)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"Deseja excluir '{item.Descricao}'?"))
+        {
+            try
+            {
+                DbContext.ItensEstoque.Remove(item);
+                await DbContext.SaveChangesAsync();
+                await CarregarDados();
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Erro ao excluir: {ex.Message}");
+            }
+        }
+    }
+}
