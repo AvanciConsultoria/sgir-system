@@ -26,8 +26,7 @@ public class CustoOperacional : BaseEntity
     public string Descricao { get; set; } = string.Empty;
     
     [Required]
-    [Column(TypeName = "decimal(18,2)")]
-    [Column("Valor_Unitario")]
+    [Column("Valor_Unitario", TypeName = "decimal(18,2)")]
     public decimal ValorUnitario { get; set; }
     
     public decimal Quantidade { get; set; } = 1;
@@ -35,8 +34,7 @@ public class CustoOperacional : BaseEntity
     [MaxLength(50)]
     public string? Unidade { get; set; } = "UN";
     
-    [Column(TypeName = "decimal(18,2)")]
-    [Column("Valor_Total")]
+    [Column("Valor_Total", TypeName = "decimal(18,2)")]
     public decimal ValorTotal { get; set; }
     
     [Column("Data_Lancamento")]

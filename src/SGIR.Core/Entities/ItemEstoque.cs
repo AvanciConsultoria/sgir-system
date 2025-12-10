@@ -40,8 +40,7 @@ public class ItemEstoque : BaseEntity
     [MaxLength(200)]
     public string? LocalPosse { get; set; }
     
-    [Column("Valor_Unitario")]
-    [Column(TypeName = "decimal(18,2)")]
+    [Column("Valor_Unitario", TypeName = "decimal(18,2)")]
     public decimal? ValorUnitario { get; set; }
     
     [Column(TypeName = "text")]

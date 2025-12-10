@@ -35,8 +35,7 @@ public class CompraAutomatica : BaseEntity
     [Column("Tipo_Aquisicao")]
     public string TipoAquisicao { get; set; } = "Compra";
     
-    [Column(TypeName = "decimal(18,2)")]
-    [Column("Valor_Estimado")]
+    [Column("Valor_Estimado", TypeName = "decimal(18,2)")]
     public decimal? ValorEstimado { get; set; }
     
     [Required]

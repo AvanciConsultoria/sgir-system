@@ -39,8 +39,7 @@ public class AnaliseDeficit : BaseEntity
     [MaxLength(50)]
     public string? Recomendacao { get; set; }
     
-    [Column(TypeName = "decimal(18,2)")]
-    [Column("Custo_Estimado")]
+    [Column("Custo_Estimado", TypeName = "decimal(18,2)")]
     public decimal? CustoEstimado { get; set; }
     
     [MaxLength(1000)]
