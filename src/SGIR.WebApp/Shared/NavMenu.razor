@@ -1,141 +1,145 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">
-            <span class="oi oi-wrench" aria-hidden="true"></span> SGIR
+<div class="nav-menu">
+    <!-- Dashboard -->
+    <div class="nav-section">
+        <a href="/" class="nav-item @GetActiveClass("")">
+            <span class="nav-icon">📊</span>
+            <span>Dashboard</span>
         </a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    </div>
+
+    <!-- Cadastros -->
+    <div class="nav-section">
+        <div class="nav-section-title">Cadastros</div>
+        <a href="/projetos" class="nav-item @GetActiveClass("projetos")">
+            <span class="nav-icon">📋</span>
+            <span>Projetos</span>
+        </a>
+        <a href="/colaboradores" class="nav-item @GetActiveClass("colaboradores")">
+            <span class="nav-icon">👥</span>
+            <span>Colaboradores</span>
+        </a>
+        <a href="/certificacoes" class="nav-item @GetActiveClass("certificacoes")">
+            <span class="nav-icon">📜</span>
+            <span>Certificações</span>
+        </a>
+    </div>
+
+    <!-- Recursos -->
+    <div class="nav-section">
+        <div class="nav-section-title">Recursos</div>
+        <a href="/recursos" class="nav-item @GetActiveClass("recursos")">
+            <span class="nav-icon">🔧</span>
+            <span>Recursos Necessários</span>
+        </a>
+        <a href="/alocacoes" class="nav-item @GetActiveClass("alocacoes")">
+            <span class="nav-icon">📌</span>
+            <span>Alocações</span>
+        </a>
+    </div>
+
+    <!-- Estoque -->
+    <div class="nav-section">
+        <div class="nav-section-title">Estoque</div>
+        <a href="/ferramentas" class="nav-item @GetActiveClass("ferramentas")">
+            <span class="nav-icon">🔨</span>
+            <span>Ferramentas</span>
+        </a>
+        <a href="/caixas" class="nav-item @GetActiveClass("caixas")">
+            <span class="nav-icon">📦</span>
+            <span>Caixas</span>
+        </a>
+        <a href="/carrinhos" class="nav-item @GetActiveClass("carrinhos")">
+            <span class="nav-icon">🛒</span>
+            <span>Carrinhos</span>
+        </a>
+        <a href="/movimentos" class="nav-item @GetActiveClass("movimentos")">
+            <span class="nav-icon">📊</span>
+            <span>Movimentações</span>
+        </a>
+    </div>
+
+    <!-- Compras -->
+    <div class="nav-section">
+        <div class="nav-section-title">Compras</div>
+        <a href="/analises" class="nav-item @GetActiveClass("analises")">
+            <span class="nav-icon">📈</span>
+            <span>Análise de Déficit</span>
+            @if (HasPendingAnalysis())
+            {
+                <span class="nav-badge">!</span>
+            }
+        </a>
+        <a href="/compras" class="nav-item @GetActiveClass("compras")">
+            <span class="nav-icon">🛍️</span>
+            <span>Compras Automáticas</span>
+            @if (PendingPurchases > 0)
+            {
+                <span class="nav-badge">@PendingPurchases</span>
+            }
+        </a>
+    </div>
+
+    <!-- Custos -->
+    <div class="nav-section">
+        <div class="nav-section-title">Financeiro</div>
+        <a href="/custos" class="nav-item @GetActiveClass("custos")">
+            <span class="nav-icon">💰</span>
+            <span>Custos Operacionais</span>
+        </a>
+    </div>
+
+    <!-- Ferramentas -->
+    <div class="nav-section">
+        <div class="nav-section-title">Ferramentas</div>
+        <a href="/importar" class="nav-item @GetActiveClass("importar")">
+            <span class="nav-icon">📤</span>
+            <span>Importar Excel</span>
+        </a>
+        <a href="/gap-analysis" class="nav-item @GetActiveClass("gap-analysis")">
+            <span class="nav-icon">📊</span>
+            <span>GAP Analysis</span>
+        </a>
+    </div>
+
+    <!-- Configurações -->
+    <div class="nav-section">
+        <div class="nav-section-title">Sistema</div>
+        <a href="/usuarios" class="nav-item @GetActiveClass("usuarios")">
+            <span class="nav-icon">👤</span>
+            <span>Usuários</span>
+        </a>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Dashboard
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <div class="nav-section-title">📊 PLANEJAMENTO</div>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="projetos">
-                <span class="oi oi-briefcase" aria-hidden="true"></span> Projetos
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="recursos">
-                <span class="oi oi-wrench" aria-hidden="true"></span> Recursos Necessários
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <div class="nav-section-title">👥 PESSOAS</div>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="colaboradores">
-                <span class="oi oi-people" aria-hidden="true"></span> Colaboradores
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="alocacoes">
-                <span class="oi oi-calendar" aria-hidden="true"></span> Alocações
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="certificacoes">
-                <span class="oi oi-shield" aria-hidden="true"></span> Certificações
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <div class="nav-section-title">📦 ESTOQUE</div>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ferramentas">
-                <span class="oi oi-wrench" aria-hidden="true"></span> Ferramentas
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="caixas">
-                <span class="oi oi-box" aria-hidden="true"></span> Caixas
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="carrinhos">
-                <span class="oi oi-cart" aria-hidden="true"></span> Carrinhos
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="estoque">
-                <span class="oi oi-list" aria-hidden="true"></span> Consultar Estoque
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="movimentos">
-                <span class="oi oi-transfer" aria-hidden="true"></span> Movimentações
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <div class="nav-section-title">🛒 COMPRAS</div>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="gap-analysis">
-                <span class="oi oi-chart" aria-hidden="true"></span> Análise de Déficit
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="compras">
-                <span class="oi oi-cart" aria-hidden="true"></span> Compras Automáticas
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <div class="nav-section-title">💰 CUSTOS</div>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="custos">
-                <span class="oi oi-dollar" aria-hidden="true"></span> Custos Operacionais
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <div class="nav-section-title">⚙️ FERRAMENTAS</div>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="importar">
-                <span class="oi oi-data-transfer-upload" aria-hidden="true"></span> Importar Excel
-            </NavLink>
-        </div>
-
-    </nav>
-</div>
-
 @code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    
+    private int PendingPurchases = 0;
+    
+    private string GetActiveClass(string page)
     {
-        collapseNavMenu = !collapseNavMenu;
+        if (NavigationManager == null) return "";
+        
+        var currentPath = new Uri(NavigationManager.Uri).AbsolutePath.TrimStart('/');
+        
+        if (string.IsNullOrEmpty(page) && string.IsNullOrEmpty(currentPath))
+            return "active";
+        
+        if (!string.IsNullOrEmpty(page) && currentPath.StartsWith(page, StringComparison.OrdinalIgnoreCase))
+            return "active";
+        
+        return "";
+    }
+    
+    private bool HasPendingAnalysis()
+    {
+        // TODO: Implement logic to check for pending analysis
+        return false;
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: Load pending purchases count from database
+        await Task.CompletedTask;
     }
 }

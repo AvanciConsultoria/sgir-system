@@ -1,18 +1,55 @@
 @inherits LayoutComponentBase
 
-<div class="page">
+<div class="page-container">
+    <!-- Sidebar -->
     <div class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    🏗️
+                </div>
+                <div>
+                    <div style="font-size: 1.25rem; font-weight: 700;">SGIR</div>
+                    <div style="font-size: 0.75rem; opacity: 0.8; font-weight: 400;">Gestão Integrada</div>
+                </div>
+            </a>
+        </div>
         <NavMenu />
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <span class="text-white">SGIR - Sistema de Gestão Integrada de Recursos</span>
-            <a href="api/docs" target="_blank" class="btn btn-sm btn-outline-light ms-3">📖 API Docs</a>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div>
+                <h6 style="margin: 0; font-weight: 600; color: var(--gray-dark);">
+                    @GetPageTitle()
+                </h6>
+                <p style="margin: 0; font-size: 0.875rem; color: var(--secondary-gray);">
+                    Bem-vindo ao Sistema de Gestão Integrada de Recursos
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="/api/docs" target="_blank" class="btn btn-sm btn-outline">
+                    📖 API Docs
+                </a>
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                    FA
+                </div>
+            </div>
         </div>
 
-        <article class="content px-4">
+        <!-- Page Content -->
+        <div class="page-content">
             @Body
-        </article>
-    </main>
+        </div>
+    </div>
 </div>
+
+@code {
+    private string GetPageTitle()
+    {
+        // You can enhance this to detect current route
+        return "Dashboard";
+    }
+}
