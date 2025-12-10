@@ -31,6 +31,7 @@ https://github.com/AvanciConsultoria/sgir-system/raw/main/install-windows.ps1
 
 **4. Iniciar:**
 - Clique no atalho **"SGIR - Sistema"** na área de trabalho
+- OU execute: `C:\Program Files\SGIR\app\SGIR.WebApp.exe`
 
 ---
 

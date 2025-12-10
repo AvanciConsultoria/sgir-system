@@ -1,0 +1,411 @@
+@page "/caixas"
+@using SGIR.Core.Entities
+@using SGIR.Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@inject SGIRDbContext DbContext
+@inject IJSRuntime JS
+
+<PageTitle>Caixas de Ferramentas</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>
+                <span class="oi oi-box" aria-hidden="true"></span>
+                Caixas de Ferramentas
+            </h2>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="AbrirModalNovo">
+                <span class="oi oi-plus"></span>
+                Nova Caixa
+            </button>
+        </div>
+    </div>
+
+    @if (loading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var caixa in caixas)
+            {
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card @(caixa.Tipo == "MECANICA" ? "border-primary" : "border-warning")">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                @caixa.Codigo
+                                <span class="badge @(caixa.Tipo == "MECANICA" ? "bg-primary" : "bg-warning")">
+                                    @caixa.Tipo
+                                </span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text"><strong>@caixa.Descricao</strong></p>
+                            <p class="card-text text-muted">
+                                <small><span class="oi oi-map-marker"></span> @(caixa.LocalAtual ?? "Almoxarifado")</small>
+                            </p>
+                            <p class="card-text">
+                                <span class="badge bg-info">@caixa.Itens.Count item(s)</span>
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-sm btn-primary" @onclick="() => GerenciarItens(caixa)">
+                                <span class="oi oi-list"></span> Itens
+                            </button>
+                            <button class="btn btn-sm btn-secondary" @onclick="() => AbrirModalEditar(caixa)">
+                                <span class="oi oi-pencil"></span>
+                            </button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => Excluir(caixa)">
+                                <span class="oi oi-trash"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal Caixa -->
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(caixaAtual.Id == 0 ? "Nova Caixa" : "Editar Caixa")</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="caixaAtual" OnValidSubmit="Salvar">
+                        <div class="mb-3">
+                            <label class="form-label">Código *</label>
+                            <InputText class="form-control" @bind-Value="caixaAtual.Codigo" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descrição *</label>
+                            <InputText class="form-control" @bind-Value="caixaAtual.Descricao" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tipo *</label>
+                            <InputSelect class="form-select" @bind-Value="caixaAtual.Tipo">
+                                <option value="MECANICA">Mecânica</option>
+                                <option value="ELETRICA">Elétrica</option>
+                                <option value="GERAL">Geral</option>
+                            </InputSelect>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Local Atual</label>
+                            <InputText class="form-control" @bind-Value="caixaAtual.LocalAtual" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <InputTextArea class="form-control" rows="2" @bind-Value="caixaAtual.Observacoes" />
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Salvar</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal Gerenciar Itens -->
+@if (mostrarModalItens && caixaSelecionada != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Itens da Caixa: @caixaSelecionada.Codigo</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModalItens"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <button class="btn btn-sm btn-success" @onclick="AbrirAdicionarItem">
+                                <span class="oi oi-plus"></span> Adicionar Item
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Quantidade</th>
+                                <th>Unidade</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in caixaSelecionada.Itens)
+                            {
+                                <tr>
+                                    <td>@item.Item?.Descricao</td>
+                                    <td>@item.Quantidade</td>
+                                    <td>@item.Item?.Unidade</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => RemoverItem(item)">
+                                            <span class="oi oi-trash"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal Adicionar Item -->
+@if (mostrarModalAdicionarItem)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.7);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Item à Caixa</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModalAdicionarItem"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Item *</label>
+                        <select class="form-select" @bind="itemSelecionadoId">
+                            <option value="0">Selecione...</option>
+                            @foreach (var item in itensDisponiveis)
+                            {
+                                <option value="@item.Id">@item.Descricao (Estoque: @item.EstoqueAtual)</option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade *</label>
+                        <input type="number" class="form-control" @bind="quantidadeAdicionar" min="0" step="0.01" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="FecharModalAdicionarItem">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="AdicionarItemCaixa">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<CaixaFerramentas> caixas = new();
+    private List<ItemEstoque> itensDisponiveis = new();
+    private bool loading = true;
+    private bool mostrarModal = false;
+    private bool mostrarModalItens = false;
+    private bool mostrarModalAdicionarItem = false;
+    private CaixaFerramentas caixaAtual = new();
+    private CaixaFerramentas? caixaSelecionada;
+    private int itemSelecionadoId = 0;
+    private decimal quantidadeAdicionar = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    private async Task CarregarDados()
+    {
+        loading = true;
+        caixas = await DbContext.CaixasFerramentas
+            .Include(c => c.Itens)
+            .ThenInclude(i => i.Item)
+            .ToListAsync();
+        itensDisponiveis = await DbContext.ItensEstoque.ToListAsync();
+        loading = false;
+    }
+
+    private void AbrirModalNovo()
+    {
+        caixaAtual = new CaixaFerramentas { Tipo = "MECANICA" };
+        mostrarModal = true;
+    }
+
+    private void AbrirModalEditar(CaixaFerramentas caixa)
+    {
+        caixaAtual = new CaixaFerramentas
+        {
+            Id = caixa.Id,
+            Codigo = caixa.Codigo,
+            Descricao = caixa.Descricao,
+            Tipo = caixa.Tipo,
+            LocalAtual = caixa.LocalAtual,
+            Observacoes = caixa.Observacoes
+        };
+        mostrarModal = true;
+    }
+
+    private void FecharModal()
+    {
+        mostrarModal = false;
+        caixaAtual = new();
+    }
+
+    private async Task GerenciarItens(CaixaFerramentas caixa)
+    {
+        caixaSelecionada = await DbContext.CaixasFerramentas
+            .Include(c => c.Itens)
+            .ThenInclude(i => i.Item)
+            .FirstOrDefaultAsync(c => c.Id == caixa.Id);
+        mostrarModalItens = true;
+    }
+
+    private void FecharModalItens()
+    {
+        mostrarModalItens = false;
+        caixaSelecionada = null;
+    }
+
+    private void AbrirAdicionarItem()
+    {
+        itemSelecionadoId = 0;
+        quantidadeAdicionar = 1;
+        mostrarModalAdicionarItem = true;
+    }
+
+    private void FecharModalAdicionarItem()
+    {
+        mostrarModalAdicionarItem = false;
+    }
+
+    private async Task AdicionarItemCaixa()
+    {
+        if (itemSelecionadoId == 0 || quantidadeAdicionar <= 0 || caixaSelecionada == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Selecione um item e quantidade válida");
+            return;
+        }
+
+        var item = await DbContext.ItensEstoque.FindAsync(itemSelecionadoId);
+        if (item == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Item não encontrado");
+            return;
+        }
+
+        if (item.EstoqueAtual < quantidadeAdicionar)
+        {
+            await JS.InvokeVoidAsync("alert", $"Estoque insuficiente. Disponível: {item.EstoqueAtual}");
+            return;
+        }
+
+        var caixaItem = new CaixaItem
+        {
+            CaixaId = caixaSelecionada.Id,
+            ItemEstoqueId = itemSelecionadoId,
+            Quantidade = quantidadeAdicionar
+        };
+
+        DbContext.CaixasItens.Add(caixaItem);
+        
+        // Desconta do estoque
+        item.EstoqueAtual -= quantidadeAdicionar;
+        
+        await DbContext.SaveChangesAsync();
+        await CarregarDados();
+        await GerenciarItens(caixaSelecionada);
+        FecharModalAdicionarItem();
+    }
+
+    private async Task RemoverItem(CaixaItem caixaItem)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "Remover este item da caixa?"))
+        {
+            // Devolve ao estoque
+            var item = await DbContext.ItensEstoque.FindAsync(caixaItem.ItemEstoqueId);
+            if (item != null)
+            {
+                item.EstoqueAtual += caixaItem.Quantidade;
+            }
+
+            DbContext.CaixasItens.Remove(caixaItem);
+            await DbContext.SaveChangesAsync();
+            await CarregarDados();
+            if (caixaSelecionada != null)
+            {
+                await GerenciarItens(caixaSelecionada);
+            }
+        }
+    }
+
+    private async Task Salvar()
+    {
+        try
+        {
+            if (caixaAtual.Id == 0)
+            {
+                DbContext.CaixasFerramentas.Add(caixaAtual);
+            }
+            else
+            {
+                var caixaExistente = await DbContext.CaixasFerramentas.FindAsync(caixaAtual.Id);
+                if (caixaExistente != null)
+                {
+                    caixaExistente.Codigo = caixaAtual.Codigo;
+                    caixaExistente.Descricao = caixaAtual.Descricao;
+                    caixaExistente.Tipo = caixaAtual.Tipo;
+                    caixaExistente.LocalAtual = caixaAtual.LocalAtual;
+                    caixaExistente.Observacoes = caixaAtual.Observacoes;
+                }
+            }
+            
+            await DbContext.SaveChangesAsync();
+            await CarregarDados();
+            FecharModal();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Erro ao salvar: {ex.Message}");
+        }
+    }
+
+    private async Task Excluir(CaixaFerramentas caixa)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"Deseja excluir a caixa '{caixa.Codigo}'?"))
+        {
+            try
+            {
+                // Devolve todos os itens ao estoque
+                var itens = await DbContext.CaixasItens.Where(ci => ci.CaixaId == caixa.Id).ToListAsync();
+                foreach (var caixaItem in itens)
+                {
+                    var item = await DbContext.ItensEstoque.FindAsync(caixaItem.ItemEstoqueId);
+                    if (item != null)
+                    {
+                        item.EstoqueAtual += caixaItem.Quantidade;
+                    }
+                }
+
+                DbContext.CaixasFerramentas.Remove(caixa);
+                await DbContext.SaveChangesAsync();
+                await CarregarDados();
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Erro ao excluir: {ex.Message}");
+            }
+        }
+    }
+}
