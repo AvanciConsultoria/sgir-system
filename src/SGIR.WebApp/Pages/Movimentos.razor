@@ -1,0 +1,84 @@
+@page "/movimentos"
+@using SGIR.Core.Entities
+@using SGIR.Core.Enums
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
+
+<PageTitle>Movimentações - SGIR</PageTitle>
+
+<div class="page-hero">
+    <h1>Movimentações de Estoque</h1>
+    <p>Entradas, saídas e transferências recentes.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando movimentações...</p>
+    </div>
+}
+else if (!movimentos.Any())
+{
+    <div class="empty-state">
+        <h5>Sem movimentações registradas</h5>
+        <p>Registre entradas e saídas após importar o estoque base.</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header">Histórico</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Tipo</th>
+                            <th>Quantidade</th>
+                            <th>Projeto</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var mov in movimentos.OrderByDescending(m => m.DataMovimento).Take(50))
+                        {
+                            <tr>
+                                <td>@ObterItem(mov.ItemEstoqueId)</td>
+                                <td><span class="badge-soft @(ClasseMovimento(mov.TipoMovimento))">@mov.TipoMovimento</span></td>
+                                <td>@mov.Quantidade</td>
+                                <td>@(mov.ProjetoId.HasValue ? ObterProjeto(mov.ProjetoId.Value) : "-")</td>
+                                <td>@mov.DataMovimento.ToShortDateString()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<MovimentoEstoque> movimentos = new();
+    private Dictionary<int, string> itens = new();
+    private Dictionary<int, string> projetos = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        movimentos = (await UnitOfWork.MovimentosEstoque.GetAllAsync()).ToList();
+        itens = (await UnitOfWork.ItensEstoque.GetAllAsync()).ToDictionary(i => i.Id, i => i.Descricao);
+        projetos = (await UnitOfWork.Projetos.GetAllAsync()).ToDictionary(p => p.Id, p => p.NomeAtividade);
+        isLoading = false;
+    }
+
+    private string ObterItem(int id) => itens.TryGetValue(id, out var desc) ? desc : $"Item {id}";
+    private string ObterProjeto(int id) => projetos.TryGetValue(id, out var nome) ? nome : $"OS {id}";
+    private string ClasseMovimento(TipoMovimento tipo) => tipo switch
+    {
+        TipoMovimento.Entrada => "success",
+        TipoMovimento.Saida => "danger",
+        _ => "info"
+    };
+}

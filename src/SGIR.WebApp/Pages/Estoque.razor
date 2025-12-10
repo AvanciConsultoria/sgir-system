@@ -1,0 +1,105 @@
+@page "/estoque"
+@using SGIR.Core.Entities
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
+
+<PageTitle>Estoque - SGIR</PageTitle>
+
+<div class="page-hero">
+    <h1>Itens de Estoque</h1>
+    <p>Saúde do inventário e itens críticos antes de rodar compras automáticas.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando estoque...</p>
+    </div>
+}
+else if (!itens.Any())
+{
+    <div class="empty-state">
+        <h5>Nenhum item encontrado</h5>
+        <p>Importe o inventário base para começar a rastrear níveis mínimos.</p>
+        <a class="btn btn-primary mt-3" href="/importar">Importar planilha</a>
+    </div>
+}
+else
+{
+    <div class="summary-grid mb-3">
+        <div class="summary-card">
+            <div class="label">Itens cadastrados</div>
+            <div class="value">@itens.Count</div>
+            <div class="pill"><span class="oi oi-box"></span> catálogo</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Críticos</div>
+            <div class="value text-danger">@criticos</div>
+            <div class="pill"><span class="oi oi-warning"></span> abaixo do mínimo</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Com intenção de compra</div>
+            <div class="value text-info">@intencaoCompra</div>
+            <div class="pill"><span class="oi oi-cart"></span> sinalizados</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Estoque total</div>
+            <div class="value">@estoqueTotal.ToString("N0")</div>
+            <div class="pill"><span class="oi oi-graph"></span> unidades</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Inventário</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th class="text-end">Estoque</th>
+                            <th class="text-end">Mínimo</th>
+                            <th>Local</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in itens.OrderBy(i => i.Descricao))
+                        {
+                            var isCritico = item.EstoqueAbaixoMinimo();
+                            <tr>
+                                <td class="fw-bold">@item.Descricao</td>
+                                <td>@item.Categoria</td>
+                                <td class="text-end">@item.EstoqueAtual</td>
+                                <td class="text-end">@(item.EstoqueMinimo?.ToString() ?? "--")</td>
+                                <td>@item.LocalPosse</td>
+                                <td>
+                                    <span class="badge-soft @(isCritico ? "danger" : "success")">@(isCritico ? "Abaixo" : "OK")</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ItemEstoque> itens = new();
+    private bool isLoading = true;
+    private int criticos;
+    private int intencaoCompra;
+    private decimal estoqueTotal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        itens = (await UnitOfWork.ItensEstoque.GetAllAsync()).ToList();
+        criticos = itens.Count(i => i.EstoqueAbaixoMinimo());
+        intencaoCompra = itens.Count(i => i.IntencaoCompra);
+        estoqueTotal = itens.Sum(i => i.EstoqueAtual + i.QuantidadeOutrosLocais);
+        isLoading = false;
+    }
+}

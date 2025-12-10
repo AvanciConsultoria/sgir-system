@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 using SGIR.Core.Interfaces;
 using SGIR.Core.Services;
 using SGIR.Infrastructure.Data;
@@ -10,13 +11,32 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-// Database Configuration
+// Database Configuration with SQLite fallback for local runs
+var sqlServerConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+var sqliteConnection = builder.Configuration.GetConnectionString("SqliteConnection");
+var useSqlite = builder.Configuration.GetValue("UseSqlite", false) || string.IsNullOrWhiteSpace(sqlServerConnection);
+
+if (useSqlite && !string.IsNullOrWhiteSpace(sqliteConnection))
+{
+    var dataFolder = Path.Combine(builder.Environment.ContentRootPath, "Data");
+    Directory.CreateDirectory(dataFolder);
+    sqliteConnection = sqliteConnection.Replace("./Data", dataFolder);
+}
+
 builder.Services.AddDbContext<SGIRDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure()
-    )
-);
+{
+    if (useSqlite && !string.IsNullOrWhiteSpace(sqliteConnection))
+    {
+        options.UseSqlite(sqliteConnection);
+    }
+    else
+    {
+        options.UseSqlServer(
+            sqlServerConnection,
+            sqlOptions => sqlOptions.EnableRetryOnFailure()
+        );
+    }
+});
 
 // Dependency Injection - Repositories
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -72,20 +92,20 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 app.MapControllers(); // Habilitar API REST
 
-// Criar banco de dados e aplicar migrations automaticamente em DEV
-if (app.Environment.IsDevelopment())
+// Criar banco de dados e aplicar migrations automaticamente em DEV + seed básico
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<SGIRDbContext>();
-    
+
     try
     {
         await dbContext.Database.MigrateAsync();
-        Console.WriteLine("✅ Database migrated successfully!");
+        await SGIR.WebApp.Data.DatabaseInitializer.SeedAsync(dbContext);
+        Console.WriteLine("✅ Database migrated and seeded successfully!");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Error migrating database: {ex.Message}");
+        Console.WriteLine($"❌ Error migrating or seeding database: {ex.Message}");
     }
 }
 

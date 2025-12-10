@@ -1,0 +1,79 @@
+@page "/alocacoes"
+@using SGIR.Core.Entities
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
+
+<PageTitle>Alocações - SGIR</PageTitle>
+
+<div class="page-hero">
+    <h1>Alocações</h1>
+    <p>Quem está em qual projeto e por quanto tempo.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando alocações...</p>
+    </div>
+}
+else if (!alocacoes.Any())
+{
+    <div class="empty-state">
+        <h5>Nenhuma alocação registrada</h5>
+        <p>Depois de importar colaboradores e projetos, você verá o mapa de alocação aqui.</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header">Mapa de alocações</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Projeto</th>
+                            <th>Colaborador</th>
+                            <th>Desde</th>
+                            <th>Até</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var alocacao in alocacoes.OrderByDescending(a => a.DataAlocacao))
+                        {
+                            <tr>
+                                <td>@ObterProjeto(alocacao.ProjetoId)</td>
+                                <td>@ObterColaborador(alocacao.CpfColaborador)</td>
+                                <td>@alocacao.DataAlocacao.ToShortDateString()</td>
+                                <td>@(alocacao.DataLiberacao?.ToShortDateString() ?? "Em aberto")</td>
+                                <td>
+                                    <span class="badge-soft @(alocacao.EstaAtivo() ? "success" : "warning")">@alocacao.Status</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<AlocacaoPessoa> alocacoes = new();
+    private Dictionary<int, string> projetos = new();
+    private Dictionary<string, string> colaboradores = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        alocacoes = (await UnitOfWork.AlocacoesPessoas.GetAllAsync()).ToList();
+        projetos = (await UnitOfWork.Projetos.GetAllAsync()).ToDictionary(p => p.Id, p => p.NomeAtividade);
+        colaboradores = (await UnitOfWork.Colaboradores.GetAllAsync()).ToDictionary(c => c.Cpf, c => c.Nome);
+        isLoading = false;
+    }
+
+    private string ObterProjeto(int id) => projetos.TryGetValue(id, out var nome) ? nome : $"OS {id}";
+    private string ObterColaborador(string cpf) => colaboradores.TryGetValue(cpf, out var nome) ? nome : cpf;
+}

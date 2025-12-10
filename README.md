@@ -375,6 +375,8 @@ Após instalação, acesse:
 - **URL:** http://localhost:5000
 - **Swagger API:** http://localhost:5000/api/docs
 
+> Dica: em ambiente de desenvolvimento, o SGIR cria automaticamente um banco SQLite (`Data/sgir.db`) e pré-carrega projetos, colaboradores, estoque e compras de exemplo. Basta rodar `dotnet run --project src/SGIR.WebApp/SGIR.WebApp.csproj` e navegar pelo menu.
+
 ### **3. Importar Planilha Excel**
 
 O sistema importa planilhas no formato "Shutdown 2023":
@@ -504,6 +506,8 @@ sgir-system/
 ---
 
 ## 🗺️ Roadmap
+
+> 📌 **Decisão sobre refatorar ou reescrever:** consulte `docs/REBUILD_VS_REFACTOR.md` para ver por que reaproveitar este repositório é hoje o caminho mais rápido e seguro.
 
 ### **Fase 1: Fundação (✅ Concluída)**
 - [x] Modelagem do Banco de Dados

@@ -8,16 +8,37 @@
 # 1. Instalar .NET 8 SDK
 https://dotnet.microsoft.com/download/dotnet/8.0
 
-# 2. Instalar SQL Server Express (grátis)
-https://go.microsoft.com/fwlink/p/?linkid=2216019
-
-# 3. Instalar SQL Server Management Studio
-https://aka.ms/ssmsfullsetup
+# (Opcional) SQL Server Express + SSMS
+# Use apenas se preferir SQL Server em vez do SQLite embutido.
 ```
 
 ---
 
 ## 📋 Passo a Passo
+
+### **Rodar a interface (ambiente de desenvolvimento)**
+
+**Modo rápido (recomendado)** – SQLite local + dados de exemplo automáticos
+
+```bash
+dotnet restore
+dotnet run --project src/SGIR.WebApp/SGIR.WebApp.csproj
+# a UI abre em https://localhost:7151 ou http://localhost:5151
+```
+
+- O SGIR cria `Data/sgir.db` automaticamente e popula projetos, colaboradores, estoque e compras de exemplo.
+- Nada para configurar: basta rodar e navegar pelo menu sem telas vazias ou 404.
+
+**Modo SQL Server** – para conectar em LocalDB/SQL Server existente
+
+1. Abra `src/SGIR.WebApp/appsettings.json` (produção) ou `appsettings.Development.json` (dev) e ajuste `DefaultConnection` com seu servidor.
+2. Defina `"UseSqlite": false` nesses arquivos para forçar o uso do SQL Server.
+3. Suba a UI:
+
+```bash
+dotnet restore
+dotnet run --project src/SGIR.WebApp/SGIR.WebApp.csproj --urls "https://localhost:5001;http://localhost:5000"
+```
 
 ### **1. Clonar Repositório** (2 min)
 
@@ -26,7 +47,7 @@ git clone https://github.com/AvanciConsultoria/sgir-system.git
 cd sgir-system
 ```
 
-### **2. Criar Banco de Dados** (5 min)
+### **2. Criar Banco de Dados** (5 min) – somente se usar SQL Server
 
 **Opção A: Via SSMS (Recomendado)**
 
@@ -134,6 +155,20 @@ GO
 
 ---
 
-**⏱️ Tempo total: 15 minutos**  
-**✅ Fase 1: Banco de Dados Pronto!**  
+**⏱️ Tempo total: 15 minutos**
+**✅ Fase 1: Banco de Dados Pronto!**
 **🔄 Próximo: Desenvolver código C#**
+
+---
+
+## 🎨 Rodar o WebApp atualizado
+
+1. Abra `src/SGIR.WebApp/appsettings.json` e ajuste `DefaultConnection` para o seu SQL Server.
+2. Restaure dependências e suba a UI:
+
+```bash
+dotnet restore
+dotnet run --project src/SGIR.WebApp/SGIR.WebApp.csproj --urls "https://localhost:5001;http://localhost:5000"
+```
+
+3. Acesse `https://localhost:5001` no navegador. O menu lateral agora tem páginas reais para Projetos, Recursos, Pessoas, Estoque, Compras e Gap Analysis.

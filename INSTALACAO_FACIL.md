@@ -25,7 +25,8 @@ https://github.com/AvanciConsultoria/sgir-system/raw/main/install-windows.ps1
   - ✅ Baixar e instalar .NET 8
   - ✅ Baixar e instalar SQL Server LocalDB
   - ✅ Baixar o código do SGIR
-  - ✅ Compilar e configurar tudo
+  - ✅ Compilar, publicar self-contained (win-x64) e configurar tudo
+  - ✅ Gerar executável único (`SGIR.WebApp.exe`) pronto para rodar sem runtime adicional
   - ✅ Criar atalhos na área de trabalho e Menu Iniciar
 
 **4. Iniciar:**
