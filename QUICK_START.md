@@ -134,6 +134,20 @@ GO
 
 ---
 
-**⏱️ Tempo total: 15 minutos**  
-**✅ Fase 1: Banco de Dados Pronto!**  
+**⏱️ Tempo total: 15 minutos**
+**✅ Fase 1: Banco de Dados Pronto!**
 **🔄 Próximo: Desenvolver código C#**
+
+---
+
+## 🎨 Rodar o WebApp atualizado
+
+1. Abra `src/SGIR.WebApp/appsettings.json` e ajuste `DefaultConnection` para o seu SQL Server.
+2. Restaure dependências e suba a UI:
+
+```bash
+dotnet restore
+dotnet run --project src/SGIR.WebApp/SGIR.WebApp.csproj --urls "https://localhost:5001;http://localhost:5000"
+```
+
+3. Acesse `https://localhost:5001` no navegador. O menu lateral agora tem páginas reais para Projetos, Recursos, Pessoas, Estoque, Compras e Gap Analysis.

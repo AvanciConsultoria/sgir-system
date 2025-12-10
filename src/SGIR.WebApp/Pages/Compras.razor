@@ -1,27 +1,81 @@
 @page "/compras"
+@using SGIR.Core.Entities
+@using SGIR.Core.Enums
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
 
-<PageTitle>Compras - SGIR</PageTitle>
+<PageTitle>Compras Automáticas - SGIR</PageTitle>
 
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2>🛒 Compras Automáticas</h2>
-            <div class="alert alert-info mt-3">
-                <h5>🚧 Página em Desenvolvimento</h5>
-                <p class="mb-0">Esta página está sendo desenvolvida e estará disponível em breve.</p>
-                <hr>
-                <p class="mb-0"><strong>Funcionalidades previstas:</strong></p>
-                <ul class="mb-0">
-                    <li>Visualizar pedidos de compra gerados automaticamente</li>
-                    <li>Aprovar ou rejeitar pedidos</li>
-                    <li>Acompanhar status (Pendente, Aprovado, Comprado, Recebido)</li>
-                    <li>Registrar dados do fornecedor e número do pedido</li>
-                </ul>
+<div class="page-hero">
+    <h1>Compras Automáticas</h1>
+    <p>Sugestões geradas pela análise de déficit.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando compras...</p>
+    </div>
+}
+else if (!compras.Any())
+{
+    <div class="empty-state">
+        <h5>Nenhuma compra sugerida</h5>
+        <p>Execute a análise de déficit para gerar compras automáticas.</p>
+        <a class="btn btn-primary mt-3" href="/gap-analysis">Abrir análise</a>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header">Fila de compras</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantidade</th>
+                            <th>Unidade</th>
+                            <th>Status</th>
+                            <th>Gerado em</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var compra in compras.OrderByDescending(c => c.DataGeracao))
+                        {
+                            <tr>
+                                <td>@compra.DescricaoItem</td>
+                                <td>@compra.Quantidade</td>
+                                <td>@(compra.Unidade ?? "UN")</td>
+                                <td><span class="badge-soft @(ClasseStatus(compra.Status))">@compra.Status</span></td>
+                                <td>@compra.DataGeracao.ToShortDateString()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
+}
 
 @code {
-    // TODO: Implementar gerenciamento de compras automáticas
+    private List<CompraAutomatica> compras = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        compras = (await UnitOfWork.ComprasAutomaticas.GetAllAsync()).ToList();
+        isLoading = false;
+    }
+
+    private string ClasseStatus(StatusCompra status) => status switch
+    {
+        StatusCompra.Pendente => "warning",
+        StatusCompra.Aprovada => "info",
+        StatusCompra.Comprado => "success",
+        StatusCompra.Recebido => "success",
+        _ => "danger"
+    };
 }

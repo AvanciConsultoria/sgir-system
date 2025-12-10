@@ -1,27 +1,124 @@
 @page "/projetos"
+@using SGIR.Core.Entities
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
 
 <PageTitle>Projetos - SGIR</PageTitle>
 
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2>📋 Gerenciamento de Projetos</h2>
-            <div class="alert alert-info mt-3">
-                <h5>🚧 Página em Desenvolvimento</h5>
-                <p class="mb-0">Esta página está sendo desenvolvida e estará disponível em breve.</p>
-                <hr>
-                <p class="mb-0"><strong>Funcionalidades previstas:</strong></p>
-                <ul class="mb-0">
-                    <li>Cadastro de projetos/ordens de serviço</li>
-                    <li>Controle de prazos e status</li>
-                    <li>Alocação de recursos</li>
-                    <li>Gestão de custos por projeto</li>
-                </ul>
+<div class="page-hero">
+    <h1>Projetos</h1>
+    <p>Visão rápida das ordens de serviço, prazos e status.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando projetos...</p>
+    </div>
+}
+else if (!projetos.Any())
+{
+    <div class="empty-state">
+        <h5>Nenhum projeto cadastrado</h5>
+        <p>Use a importação de Excel para carregar as OS da planilha exemplo.</p>
+        <a class="btn btn-primary mt-3" href="/importar">Importar planilha</a>
+    </div>
+}
+else
+{
+    <div class="summary-grid mb-3">
+        <div class="summary-card">
+            <div class="label">Projetos ativos</div>
+            <div class="value">@ativos</div>
+            <div class="pill"><span class="oi oi-media-play"></span> em andamento</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Em atraso</div>
+            <div class="value text-warning">@atrasados</div>
+            <div class="pill"><span class="oi oi-warning"></span> verificar prazo</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Concluídos</div>
+            <div class="value text-success">@concluidos</div>
+            <div class="pill"><span class="oi oi-check"></span> entregues</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Pendências</div>
+            <div class="value text-info">@pendentes</div>
+            <div class="pill"><span class="oi oi-people"></span> aguardando recursos</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Lista de projetos</span>
+            <a class="btn btn-sm btn-outline-light" href="/gap-analysis"><span class="oi oi-chart"></span> Rodar análise de déficit</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>OS</th>
+                            <th>Atividade</th>
+                            <th>Local</th>
+                            <th>Status</th>
+                            <th>Prazo</th>
+                            <th>Início</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var projeto in projetos.OrderByDescending(p => p.DataInicio ?? DateTime.MinValue))
+                        {
+                            <tr>
+                                <td class="fw-bold">@projeto.Id</td>
+                                <td>@projeto.NomeAtividade</td>
+                                <td>@projeto.Local</td>
+                                <td>
+                                    <span class="badge-soft @ObterClasseStatus(projeto.Status)">@projeto.Status</span>
+                                </td>
+                                <td>@(projeto.PrazoDias == 0 ? "--" : $"{projeto.PrazoDias} dias")</td>
+                                <td>@(projeto.DataInicio?.ToShortDateString() ?? "--")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
+}
 
 @code {
-    // TODO: Implementar CRUD de Projetos
+    private List<Projeto> projetos = new();
+    private bool isLoading = true;
+    private int ativos;
+    private int concluidos;
+    private int atrasados;
+    private int pendentes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        projetos = (await UnitOfWork.Projetos.GetAllAsync()).ToList();
+        ativos = projetos.Count(p => p.Status != "Concluído" && p.Status != "Cancelado");
+        concluidos = projetos.Count(p => p.Status == "Concluído");
+        pendentes = projetos.Count(p => p.Status == "Planejamento" || p.Status == "Pendente");
+
+        atrasados = projetos.Count(p =>
+            p.DataFimPrevista.HasValue && p.DataFimPrevista.Value.Date < DateTime.Today &&
+            p.Status != "Concluído" && p.Status != "Cancelado");
+
+        isLoading = false;
+    }
+
+    private string ObterClasseStatus(string status)
+    {
+        return status switch
+        {
+            "Concluído" => "success",
+            "Cancelado" => "danger",
+            "Planejamento" => "info",
+            _ => "warning"
+        };
+    }
 }

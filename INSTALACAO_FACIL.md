@@ -20,46 +20,16 @@ https://github.com/AvanciConsultoria/sgir-system/raw/main/install-windows.ps1
 
 ⚠️ **Erro "scripts desabilitados"?** → Veja [TROUBLESHOOTING_WINDOWS.md](TROUBLESHOOTING_WINDOWS.md)
 
-**3. O que o instalador faz automaticamente:** 🔄
+**3. Pronto!** ✅
+- O instalador vai:
+  - ✅ Baixar e instalar .NET 8
+  - ✅ Baixar e instalar SQL Server LocalDB
+  - ✅ Baixar o código do SGIR
+  - ✅ Compilar, publicar self-contained (win-x64) e configurar tudo
+  - ✅ Gerar executável único (`SGIR.WebApp.exe`) pronto para rodar sem runtime adicional
+  - ✅ Criar atalhos na área de trabalho e Menu Iniciar
 
-**ETAPA 1/5:** Verificar e instalar .NET 8 SDK
-- ✅ Detecta se .NET 8 já está instalado
-- ✅ Baixa instalador oficial (se necessário)
-- ✅ Instala silenciosamente
-
-**ETAPA 2/5:** Verificar e instalar SQL Server LocalDB
-- ✅ Detecta se LocalDB já está instalado
-- ✅ Baixa instalador oficial (se necessário)
-- ✅ Instala e inicializa automaticamente
-
-**ETAPA 3/5:** Baixar código do SGIR
-- ✅ Clona repositório Git (se Git instalado)
-- ✅ OU baixa ZIP direto do GitHub
-- ✅ Instala em `C:\Program Files\SGIR`
-
-**ETAPA 4/5:** Compilar aplicação
-- ✅ Restaura pacotes NuGet
-- ✅ Compila em modo Release
-- ✅ **Cria executável SELF-CONTAINED (SGIR.WebApp.exe)**
-  - 🎯 **Single-file executable** (80-120 MB)
-  - 🎯 **Não precisa de .NET instalado para rodar**
-  - 🎯 **Inclui todas as dependências nativas**
-- ✅ Cria banco de dados automaticamente
-
-**ETAPA 5/5:** Criar atalhos e configurar sistema
-- ✅ Cria atalho na Área de Trabalho
-- ✅ Cria atalho no Menu Iniciar
-- ✅ Cria script de desinstalação
-- ✅ **Abre sistema automaticamente no navegador**
-
-**4. Resultado Final:** 🎉
-- ✅ Sistema totalmente instalado e configurado
-- ✅ Atalho "SGIR - Sistema" na área de trabalho
-- ✅ Executável único: `SGIR.WebApp.exe` (não precisa de .NET)
-- ✅ Banco de dados criado e pronto
-- ✅ Acesso via: `http://localhost:5000`
-
-**5. Iniciar depois:**
+**4. Iniciar:**
 - Clique no atalho **"SGIR - Sistema"** na área de trabalho
 - OU execute: `C:\Program Files\SGIR\app\SGIR.WebApp.exe`
 

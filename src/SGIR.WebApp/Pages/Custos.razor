@@ -1,27 +1,89 @@
 @page "/custos"
+@using SGIR.Core.Entities
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
 
 <PageTitle>Custos Operacionais - SGIR</PageTitle>
 
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2>💰 Custos Operacionais</h2>
-            <div class="alert alert-info mt-3">
-                <h5>🚧 Página em Desenvolvimento</h5>
-                <p class="mb-0">Esta página está sendo desenvolvida e estará disponível em breve.</p>
-                <hr>
-                <p class="mb-0"><strong>Funcionalidades previstas:</strong></p>
-                <ul class="mb-0">
-                    <li>Cadastrar custos por projeto</li>
-                    <li>Tipos: Mão de Obra, Material, Equipamento, Transporte, Outros</li>
-                    <li>Cálculo automático de valor total</li>
-                    <li>Relatórios de custos consolidados</li>
-                </ul>
+<div class="page-hero">
+    <h1>Custos Operacionais</h1>
+    <p>Resumo financeiro por projeto.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando custos...</p>
+    </div>
+}
+else if (!custos.Any())
+{
+    <div class="empty-state">
+        <h5>Nenhum custo lançado</h5>
+        <p>Quando os projetos forem importados, cadastre custos para acompanhar o orçamento.</p>
+    </div>
+}
+else
+{
+    <div class="summary-grid mb-3">
+        <div class="summary-card">
+            <div class="label">Custos lançados</div>
+            <div class="value">@custos.Count</div>
+            <div class="pill"><span class="oi oi-dollar"></span> registros</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Valor total</div>
+            <div class="value">@valorTotal.ToString("C")</div>
+            <div class="pill"><span class="oi oi-graph"></span> consolidado</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Últimos lançamentos</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Projeto</th>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th class="text-end">Valor</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var custo in custos.OrderByDescending(c => c.DataLancamento))
+                        {
+                            <tr>
+                                <td>@ObterProjeto(custo.ProjetoId)</td>
+                                <td>@custo.TipoCusto</td>
+                                <td>@custo.Descricao</td>
+                                <td class="text-end">@custo.ValorTotal.ToString("C")</td>
+                                <td>@custo.DataLancamento.ToShortDateString()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
+}
 
 @code {
-    // TODO: Implementar gerenciamento de custos operacionais
+    private List<CustoOperacional> custos = new();
+    private Dictionary<int, string> projetos = new();
+    private bool isLoading = true;
+    private decimal valorTotal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        custos = (await UnitOfWork.CustosOperacionais.GetAllAsync()).ToList();
+        projetos = (await UnitOfWork.Projetos.GetAllAsync()).ToDictionary(p => p.Id, p => p.NomeAtividade);
+        valorTotal = custos.Sum(c => c.ValorTotal);
+        isLoading = false;
+    }
+
+    private string ObterProjeto(int id) => projetos.TryGetValue(id, out var nome) ? nome : $"OS {id}";
 }
