@@ -28,9 +28,9 @@
 
 ## 🎯 Sobre o Projeto
 
-> **Status**: 🚧 **EM DESENVOLVIMENTO** | **Phase 2 COMPLETA** ✅  
-> **Última Atualização**: 09/12/2025  
-> **Progresso Geral**: ⬛⬛⬛⬜⬜ 60% (3 de 5 fases concluídas)
+> **Status**: 🚀 **PRONTO PARA TESTAR** | **Phase 3 COMPLETA** ✅  
+> **Última Atualização**: 10/12/2025  
+> **Progresso Geral**: ⬛⬛⬛⬛⬜ 80% (Instaladores + WebApp funcionais)
 
 O **SGIR (Sistema de Gestão Integrada de Recursos)** é uma solução completa desenvolvida em **C#/.NET 8** com **SQL Server** que unifica:
 
@@ -185,45 +185,112 @@ O sistema automatiza decisões inteligentes:
 - **IDE:** Visual Studio 2022 / VS Code + C# DevKit
 - **Controle de Versão:** Git / GitHub
 - **CI/CD:** GitHub Actions (futuro)
-- **Containerização:** Docker (futuro)
+- **Containerização:** ✅ **Docker/Docker Compose** (Implementado!)
+- **Testing:** Scripts automatizados de validação
 
 ---
 
-## 📋 Pré-requisitos
+## 🚀 Instalação RÁPIDA (3 Métodos)
 
-### **Software Necessário:**
+### 🐋 **Método 1: Docker (RECOMENDADO)** ⭐
+
+**Mais simples e rápido! Funciona em qualquer sistema operacional.**
 
 ```bash
-# 1. .NET 8 SDK
-https://dotnet.microsoft.com/download/dotnet/8.0
+# 1. Clone o repositório
+git clone https://github.com/AvanciConsultoria/sgir-system.git
+cd sgir-system
 
-# 2. SQL Server 2022 (ou Express Edition - grátis)
-https://www.microsoft.com/sql-server/sql-server-downloads
+# 2. (OPCIONAL) Teste o ambiente primeiro
+./test-docker.sh          # Linux/Mac
+.\test-docker.ps1         # Windows PowerShell
 
-# 3. SQL Server Management Studio (SSMS)
-https://docs.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms
+# 3. Execute
+docker-compose up -d --build
 
-# 4. Visual Studio 2022 (Community - grátis) ou VS Code
-https://visualstudio.microsoft.com/downloads/
-
-# 5. Git
-https://git-scm.com/downloads
+# 4. Acesse
+http://localhost:5000
 ```
 
-### **Verificar Instalação:**
+✅ **Vantagens do Docker:**
+- Sem instalação de .NET ou SQL Server
+- Mesmo comportamento em Windows/Linux/Mac
+- Isolamento completo (não afeta seu sistema)
+- Fácil de remover: `docker-compose down -v`
+
+---
+
+### 🪟 **Método 2: Instalador Windows PowerShell**
+
+**Para quem prefere instalação nativa no Windows.**
+
+```powershell
+# 1. Baixe o instalador
+# https://github.com/AvanciConsultoria/sgir-system/raw/main/install-windows.ps1
+
+# 2. Execute com PowerShell (como Administrador)
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+.\install-windows.ps1
+
+# O script instala automaticamente:
+# - .NET 8 SDK
+# - SQL Server LocalDB
+# - Código do SGIR
+# - Cria atalhos
+
+# 3. Clique no atalho "SGIR - Sistema" criado na área de trabalho
+```
+
+⚠️ **Problemas?** Veja: [TROUBLESHOOTING_WINDOWS.md](TROUBLESHOOTING_WINDOWS.md)
+
+---
+
+### 🐧 **Método 3: Instalador Linux/Mac**
 
 ```bash
-# Verificar .NET SDK
-dotnet --version
-# Deve retornar: 8.0.x
+# 1. Execute o instalador automatizado
+curl -fsSL https://raw.githubusercontent.com/AvanciConsultoria/sgir-system/main/install-linux.sh | bash
 
-# Verificar Git
-git --version
+# Ou baixe e execute localmente
+wget https://raw.githubusercontent.com/AvanciConsultoria/sgir-system/main/install-linux.sh
+chmod +x install-linux.sh
+./install-linux.sh
+
+# 2. Inicie o sistema
+sgir
 ```
 
 ---
 
-## 🚀 Instalação
+## 📖 Documentação Completa
+
+| Documento | Descrição |
+|-----------|-----------|
+| [INSTALACAO_FACIL.md](INSTALACAO_FACIL.md) | 🚀 Guia visual de instalação (3 métodos) |
+| [COMO_TESTAR.md](COMO_TESTAR.md) | 🧪 Como testar o sistema após instalação |
+| [TROUBLESHOOTING_WINDOWS.md](TROUBLESHOOTING_WINDOWS.md) | 🛠️ Solução de problemas comuns |
+| [test-docker.ps1](test-docker.ps1) / [.sh](test-docker.sh) | ✅ Scripts de validação de ambiente |
+
+---
+
+## 📋 Pré-requisitos (apenas para instalação manual)
+
+### **Para Método Docker:**
+- ✅ Docker Desktop 4.0+ (Windows/Mac) ou Docker Engine (Linux)
+- ✅ 8GB RAM
+- ✅ 10GB de espaço em disco
+
+### **Para Método PowerShell/Manual:**
+- .NET 8 SDK: https://dotnet.microsoft.com/download/dotnet/8.0
+- SQL Server 2022 ou LocalDB: https://www.microsoft.com/sql-server
+- Git: https://git-scm.com/downloads
+
+---
+
+## 🎯 Instalação Manual (Desenvolvedores)
+
+<details>
+<summary>Clique para expandir instruções detalhadas</summary>
 
 ### **1. Clonar o Repositório**
 
@@ -234,35 +301,23 @@ cd sgir-system
 
 ### **2. Configurar Banco de Dados**
 
-**Opção A: Via SSMS (Visual)**
-
-1. Abrir SQL Server Management Studio
-2. Conectar ao servidor local: `localhost` ou `(localdb)\MSSQLLocalDB`
-3. Abrir e executar scripts na ordem:
-   - `database/scripts/01_CreateDatabase.sql`
-   - `database/scripts/02_CreateTables.sql`
-   - `database/scripts/03_SeedData.sql` (dados de exemplo)
-
-**Opção B: Via Command Line**
-
 ```bash
-# Windows (usando sqlcmd)
-sqlcmd -S localhost -i database/scripts/01_CreateDatabase.sql
-sqlcmd -S localhost -d SGIR -i database/scripts/02_CreateTables.sql
-sqlcmd -S localhost -d SGIR -i database/scripts/03_SeedData.sql
+# Via Entity Framework (cria automaticamente)
+cd src/SGIR.WebApp
+dotnet ef database update --project ../SGIR.Infrastructure
 
-# Ou via script PowerShell
-./database/install-database.ps1
+# Ou execute os scripts SQL manualmente
+sqlcmd -S localhost -i database/scripts/01_CreateDatabase.sql
 ```
 
 ### **3. Configurar Connection String**
 
-Editar `src/SGIR.WebAPI/appsettings.json`:
+Editar `src/SGIR.WebApp/appsettings.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=SGIR;Trusted_Connection=True;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=localhost;Database=SGIR_DB;Trusted_Connection=True;TrustServerCertificate=True;"
   }
 }
 ```
@@ -277,50 +332,64 @@ Editar `src/SGIR.WebAPI/appsettings.json`:
 }
 ```
 
-### **4. Restaurar Dependências e Compilar**
+### **4. Compilar e Executar**
 
 ```bash
 # Restaurar pacotes NuGet
+cd src/SGIR.WebApp
 dotnet restore
 
-# Compilar solução
+# Compilar e executar
 dotnet build
-
-# Executar testes (se existirem)
-dotnet test
-```
-
-### **5. Executar Aplicação**
-
-**API Web:**
-
-```bash
-cd src/SGIR.WebAPI
 dotnet run
 
-# API estará disponível em:
-# https://localhost:5001
+# Aplicação estará disponível em:
 # http://localhost:5000
 ```
 
-**Desktop (WPF):**
-
-```bash
-cd src/SGIR.WPF
-dotnet run
-```
+</details>
 
 ---
 
 ## 📖 Uso
 
-### **Exemplo 1: Criar Novo Projeto**
+### **1. Validar Ambiente (Antes de Instalar)**
+
+```bash
+# Windows
+.\test-docker.ps1
+
+# Linux/Mac
+./test-docker.sh
+```
+
+Os scripts verificam:
+- ✅ Docker instalado e rodando
+- ✅ Arquivos necessários presentes
+- ✅ Portas disponíveis (5000, 1433)
+- ✅ RAM suficiente
+
+### **2. Acessar Dashboard**
+
+Após instalação, acesse:
+- **URL:** http://localhost:5000
+- **Swagger API:** http://localhost:5000/api/docs
+
+### **3. Importar Planilha Excel**
+
+O sistema importa planilhas no formato "Shutdown 2023":
+- Dados de projeto (Cliente, Local, OS)
+- Equipe planejada (Funções e demandas)
+- Ferramentas e insumos
+- Colaboradores com certificações
+
+### **Exemplo: Criar Novo Projeto**
 
 ```csharp
-// Via API REST
+// Via Dashboard Web ou API REST
 POST /api/projetos
 {
-  "osId": "OS-2024-001",
+  "osId": "OS-2025-001",
   "nomeProjeto": "Alteração de Layout - Linha Montagem",
   "cliente": "COMAU",
   "local": "Renault SJP - PR",
@@ -328,7 +397,7 @@ POST /api/projetos
 }
 ```
 
-### **Exemplo 2: Alocar Pessoal com Validação Automática**
+### **Exemplo: Alocar Pessoal com Validação Automática**
 
 ```csharp
 // Sistema verifica automaticamente:
