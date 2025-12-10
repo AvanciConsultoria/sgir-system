@@ -1,0 +1,123 @@
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">
+            <span class="oi oi-wrench" aria-hidden="true"></span> SGIR
+        </a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Dashboard
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <div class="nav-section-title">📊 PLANEJAMENTO</div>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="projetos">
+                <span class="oi oi-briefcase" aria-hidden="true"></span> Projetos
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="recursos">
+                <span class="oi oi-wrench" aria-hidden="true"></span> Recursos Necessários
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <div class="nav-section-title">👥 PESSOAS</div>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="colaboradores">
+                <span class="oi oi-people" aria-hidden="true"></span> Colaboradores
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="alocacoes">
+                <span class="oi oi-calendar" aria-hidden="true"></span> Alocações
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="certificacoes">
+                <span class="oi oi-shield" aria-hidden="true"></span> Certificações
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <div class="nav-section-title">📦 ESTOQUE</div>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="estoque">
+                <span class="oi oi-box" aria-hidden="true"></span> Itens de Estoque
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="movimentos">
+                <span class="oi oi-transfer" aria-hidden="true"></span> Movimentações
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <div class="nav-section-title">🛒 COMPRAS</div>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="gap-analysis">
+                <span class="oi oi-chart" aria-hidden="true"></span> Análise de Déficit
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="compras">
+                <span class="oi oi-cart" aria-hidden="true"></span> Compras Automáticas
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <div class="nav-section-title">💰 CUSTOS</div>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="custos">
+                <span class="oi oi-dollar" aria-hidden="true"></span> Custos Operacionais
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <div class="nav-section-title">⚙️ FERRAMENTAS</div>
+        </div>
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="importar">
+                <span class="oi oi-data-transfer-upload" aria-hidden="true"></span> Importar Excel
+            </NavLink>
+        </div>
+
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

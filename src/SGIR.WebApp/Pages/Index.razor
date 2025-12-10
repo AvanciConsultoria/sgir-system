@@ -1,0 +1,264 @@
+@page "/"
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
+@inject IAlocacaoService AlocacaoService
+@inject IGapAnalysisService GapAnalysisService
+
+<PageTitle>Dashboard - SGIR</PageTitle>
+
+<div class="dashboard">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4">
+                <span class="oi oi-dashboard"></span> Dashboard
+            </h1>
+            <p class="lead">Visão geral do Sistema de Gestão Integrada de Recursos</p>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-3">Carregando dados...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Cards de Resumo -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Projetos Ativos</h6>
+                                <h2 class="mb-0">@totalProjetos</h2>
+                            </div>
+                            <div class="fs-1">
+                                <span class="oi oi-briefcase"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/projetos" class="text-white text-decoration-none">
+                            Ver todos <span class="oi oi-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Colaboradores</h6>
+                                <h2 class="mb-0">@totalColaboradores</h2>
+                                <small>@colaboradoresAptos aptos</small>
+                            </div>
+                            <div class="fs-1">
+                                <span class="oi oi-people"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/colaboradores" class="text-white text-decoration-none">
+                            Ver todos <span class="oi oi-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card text-white bg-warning mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Itens de Estoque</h6>
+                                <h2 class="mb-0">@totalItensEstoque</h2>
+                                <small>@itensCriticos críticos</small>
+                            </div>
+                            <div class="fs-1">
+                                <span class="oi oi-box"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/estoque" class="text-white text-decoration-none">
+                            Ver todos <span class="oi oi-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card text-white bg-danger mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Compras Pendentes</h6>
+                                <h2 class="mb-0">@comprasPendentes</h2>
+                            </div>
+                            <div class="fs-1">
+                                <span class="oi oi-cart"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/compras" class="text-white text-decoration-none">
+                            Ver todas <span class="oi oi-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas Importantes -->
+        @if (colaboradoresInaptos > 0 || itensCriticos > 0 || comprasPendentes > 0)
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-white">
+                            <h5 class="mb-0">
+                                <span class="oi oi-warning"></span> Atenção Necessária
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                @if (colaboradoresInaptos > 0)
+                                {
+                                    <a href="/colaboradores" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">
+                                                <span class="oi oi-people text-danger"></span>
+                                                @colaboradoresInaptos colaborador(es) inapto(s)
+                                            </h6>
+                                            <small class="text-muted">Certificações vencidas</small>
+                                        </div>
+                                        <p class="mb-1 small">Colaboradores com certificações vencidas não podem ser alocados em projetos.</p>
+                                    </a>
+                                }
+                                
+                                @if (itensCriticos > 0)
+                                {
+                                    <a href="/estoque" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">
+                                                <span class="oi oi-box text-warning"></span>
+                                                @itensCriticos item(ns) crítico(s) no estoque
+                                            </h6>
+                                            <small class="text-muted">Abaixo do mínimo</small>
+                                        </div>
+                                        <p class="mb-1 small">Itens com estoque abaixo do mínimo necessário.</p>
+                                    </a>
+                                }
+                                
+                                @if (comprasPendentes > 0)
+                                {
+                                    <a href="/compras" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">
+                                                <span class="oi oi-cart text-info"></span>
+                                                @comprasPendentes compra(s) pendente(s) de aprovação
+                                            </h6>
+                                            <small class="text-muted">Aguardando aprovação</small>
+                                        </div>
+                                        <p class="mb-1 small">Solicitações de compra geradas automaticamente pela análise de déficit.</p>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Ações Rápidas -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <span class="oi oi-flash"></span> Ações Rápidas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <a href="/projetos" class="btn btn-lg btn-outline-primary w-100">
+                                    <span class="oi oi-plus"></span> Novo Projeto
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a href="/gap-analysis" class="btn btn-lg btn-outline-warning w-100">
+                                    <span class="oi oi-chart"></span> Analisar Déficit
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a href="/importar" class="btn btn-lg btn-outline-info w-100">
+                                    <span class="oi oi-data-transfer-upload"></span> Importar Excel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    
+    private int totalProjetos = 0;
+    private int totalColaboradores = 0;
+    private int colaboradoresAptos = 0;
+    private int colaboradoresInaptos = 0;
+    private int totalItensEstoque = 0;
+    private int itensCriticos = 0;
+    private int comprasPendentes = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await CarregarDados();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar dashboard: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CarregarDados()
+    {
+        // Projetos
+        totalProjetos = await UnitOfWork.Projetos.CountAsync(
+            p => p.Status != "Concluído" && p.Status != "Cancelado"
+        );
+
+        // Colaboradores
+        totalColaboradores = await UnitOfWork.Colaboradores.CountAsync();
+        var colaboradores = await UnitOfWork.Colaboradores.GetAllAsync();
+        colaboradoresAptos = colaboradores.Count(c => c.StatusGeral == Core.Enums.StatusGeral.Apto);
+        colaboradoresInaptos = colaboradores.Count(c => c.StatusGeral == Core.Enums.StatusGeral.Inapto);
+
+        // Estoque
+        totalItensEstoque = await UnitOfWork.ItensEstoque.CountAsync();
+        var itens = await UnitOfWork.ItensEstoque.GetAllAsync();
+        itensCriticos = itens.Count(i => i.EstoqueAbaixoMinimo());
+
+        // Compras
+        comprasPendentes = await UnitOfWork.ComprasAutomaticas.CountAsync(
+            c => c.Status == Core.Enums.StatusCompra.Pendente
+        );
+    }
+}

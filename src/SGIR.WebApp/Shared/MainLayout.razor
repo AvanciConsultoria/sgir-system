@@ -1,0 +1,18 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <span class="text-white">SGIR - Sistema de Gestão Integrada de Recursos</span>
+            <a href="api/docs" target="_blank" class="btn btn-sm btn-outline-light ms-3">📖 API Docs</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
