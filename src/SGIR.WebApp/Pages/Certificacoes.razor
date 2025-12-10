@@ -1,0 +1,82 @@
+@page "/certificacoes"
+@using SGIR.Core.Entities
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
+
+<PageTitle>Certificações - SGIR</PageTitle>
+
+<div class="page-hero">
+    <h1>Certificações</h1>
+    <p>Controle de vencimentos e renovações críticas.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando certificações...</p>
+    </div>
+}
+else if (!certificacoes.Any())
+{
+    <div class="empty-state">
+        <h5>Nenhuma certificação registrada</h5>
+        <p>Após importar colaboradores, cadastre suas certificações obrigatórias.</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header">Validades</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Colaborador</th>
+                            <th>CPF</th>
+                            <th>ASO</th>
+                            <th>NR-10</th>
+                            <th>NR-12</th>
+                            <th>NR-35</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cert in certificacoes.OrderBy(c => c.CpfColaborador))
+                        {
+                            var vencidas = cert.ObterCertificacoesVencidas();
+                            <tr>
+                                <td>@ObterColaborador(cert.CpfColaborador)</td>
+                                <td>@cert.CpfColaborador</td>
+                                <td>@Formatar(cert.ASOValidade)</td>
+                                <td>@Formatar(cert.NR10Validade)</td>
+                                <td>@Formatar(cert.NR12Validade)</td>
+                                <td>@Formatar(cert.NR35Validade)</td>
+                                <td>
+                                    <span class="badge-soft @(vencidas.Any() ? "danger" : "success")">@(vencidas.Any() ? "Renovar" : "OK")</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Certificacao> certificacoes = new();
+    private Dictionary<string, string> colaboradores = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        certificacoes = (await UnitOfWork.Certificacoes.GetAllAsync()).ToList();
+        colaboradores = (await UnitOfWork.Colaboradores.GetAllAsync()).ToDictionary(c => c.Cpf, c => c.Nome);
+        isLoading = false;
+    }
+
+    private string ObterColaborador(string cpf) => colaboradores.TryGetValue(cpf, out var nome) ? nome : cpf;
+    private static string Formatar(DateTime? data) => data?.ToShortDateString() ?? "--";
+}

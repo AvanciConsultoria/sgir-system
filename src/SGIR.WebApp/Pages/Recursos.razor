@@ -1,0 +1,109 @@
+@page "/recursos"
+@using SGIR.Core.Entities
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
+
+<PageTitle>Recursos Necessários - SGIR</PageTitle>
+
+<div class="page-hero">
+    <h1>Recursos Necessários</h1>
+    <p>Consolide a demanda dos projetos e identifique o que falta alocar.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando recursos...</p>
+    </div>
+}
+else if (!recursos.Any())
+{
+    <div class="empty-state">
+        <h5>Sem itens na demanda</h5>
+        <p>Importe a planilha exemplo para popular a lista de recursos.</p>
+        <a class="btn btn-primary mt-3" href="/importar">Importar planilha</a>
+    </div>
+}
+else
+{
+    <div class="summary-grid mb-3">
+        <div class="summary-card">
+            <div class="label">Demandas totais</div>
+            <div class="value">@recursos.Count</div>
+            <div class="pill"><span class="oi oi-layers"></span> registros</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Pendentes</div>
+            <div class="value text-warning">@pendentes</div>
+            <div class="pill"><span class="oi oi-warning"></span> falta alocar</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Total requisitado</div>
+            <div class="value">@totalNecessario.ToString("N0")</div>
+            <div class="pill"><span class="oi oi-loop-circular"></span> unidades</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Pendente de compra</div>
+            <div class="value text-info">@totalPendente.ToString("N0")</div>
+            <div class="pill"><span class="oi oi-cart"></span> sugerir compra</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Mapa de recursos por projeto</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Projeto</th>
+                            <th>Recurso</th>
+                            <th class="text-end">Necessário</th>
+                            <th class="text-end">Alocado</th>
+                            <th class="text-end">Pendente</th>
+                            <th>Unidade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var recurso in recursos.OrderByDescending(r => r.QuantidadePendente))
+                        {
+                            <tr>
+                                <td>@(projetos.TryGetValue(recurso.ProjetoId, out var nome) ? nome : $"OS {recurso.ProjetoId}")</td>
+                                <td>@recurso.DescricaoRecurso</td>
+                                <td class="text-end">@recurso.QuantidadeNecessaria</td>
+                                <td class="text-end">@recurso.QuantidadeAlocada</td>
+                                <td class="text-end">
+                                    <span class="badge-soft @(recurso.QuantidadePendente > 0 ? "warning" : "success")">
+                                        @recurso.QuantidadePendente
+                                    </span>
+                                </td>
+                                <td>@(recurso.Unidade ?? "UN")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<RecursoNecessario> recursos = new();
+    private Dictionary<int, string> projetos = new();
+    private bool isLoading = true;
+    private int pendentes;
+    private decimal totalNecessario;
+    private decimal totalPendente;
+
+    protected override async Task OnInitializedAsync()
+    {
+        recursos = (await UnitOfWork.RecursosNecessarios.GetAllAsync()).ToList();
+        projetos = (await UnitOfWork.Projetos.GetAllAsync()).ToDictionary(p => p.Id, p => p.NomeAtividade);
+
+        pendentes = recursos.Count(r => r.QuantidadePendente > 0);
+        totalNecessario = recursos.Sum(r => r.QuantidadeNecessaria);
+        totalPendente = recursos.Sum(r => r.QuantidadePendente);
+        isLoading = false;
+    }
+}

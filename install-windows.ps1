@@ -196,9 +196,9 @@ try {
     Write-Warning "Erro ao criar banco. Será criado automaticamente na primeira execução."
 }
 
-# Publicar aplicação
-Write-Info "Publicando aplicação..."
-& dotnet publish --configuration Release --output "$InstallDir\app" --verbosity quiet --no-build
+# Publicar aplicação (self-contained, single-file)
+Write-Info "Publicando aplicação (self-contained, single-file para Windows x64)..."
+& dotnet publish --configuration Release --runtime win-x64 --self-contained true --output "$InstallDir\app" --verbosity quiet --no-build --framework net8.0 /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true /p:PublishTrimmed=false
 
 Write-Success "Aplicação compilada e publicada!"
 Write-Host ""
@@ -222,7 +222,7 @@ echo.
 
 cd /d "$InstallDir\app"
 start "" "https://localhost:7001"
-dotnet SGIR.WebApp.dll
+SGIR.WebApp.exe
 
 pause
 "@

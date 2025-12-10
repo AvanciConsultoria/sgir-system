@@ -1,0 +1,122 @@
+@page "/colaboradores"
+@using SGIR.Core.Entities
+@using SGIR.Core.Enums
+@using SGIR.Core.Interfaces
+@inject IUnitOfWork UnitOfWork
+
+<PageTitle>Colaboradores - SGIR</PageTitle>
+
+<div class="page-hero">
+    <h1>Colaboradores</h1>
+    <p>Status de aptidão, contatos e certificações principais.</p>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-3 text-muted">Carregando colaboradores...</p>
+    </div>
+}
+else if (!colaboradores.Any())
+{
+    <div class="empty-state">
+        <h5>Nenhum colaborador cadastrado</h5>
+        <p>Importe a planilha exemplo para começar com dados reais.</p>
+        <a class="btn btn-primary mt-3" href="/importar">Importar planilha</a>
+    </div>
+}
+else
+{
+    <div class="summary-grid mb-3">
+        <div class="summary-card">
+            <div class="label">Total</div>
+            <div class="value">@colaboradores.Count</div>
+            <div class="pill"><span class="oi oi-people"></span> pessoas</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Aptos</div>
+            <div class="value text-success">@aptos</div>
+            <div class="pill"><span class="oi oi-check"></span> liberados</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Em alerta</div>
+            <div class="value text-warning">@alertas</div>
+            <div class="pill"><span class="oi oi-clock"></span> renovar certificados</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Inaptos</div>
+            <div class="value text-danger">@inaptos</div>
+            <div class="pill"><span class="oi oi-ban"></span> bloqueados</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Equipe</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Função</th>
+                            <th>Status</th>
+                            <th>Contato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var colaborador in colaboradores.OrderBy(c => c.Nome))
+                        {
+                            <tr>
+                                <td class="fw-bold">@colaborador.Nome</td>
+                                <td>@colaborador.Cpf</td>
+                                <td>@colaborador.Funcao</td>
+                                <td>
+                                    <span class="badge-soft @ObterClasseStatus(colaborador.StatusGeral)">@colaborador.StatusGeral</span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(colaborador.Email))
+                                    {
+                                        <div>@colaborador.Email</div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(colaborador.Telefone))
+                                    {
+                                        <small class="text-muted">@colaborador.Telefone</small>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Colaborador> colaboradores = new();
+    private bool isLoading = true;
+    private int aptos;
+    private int alertas;
+    private int inaptos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        colaboradores = (await UnitOfWork.Colaboradores.GetAllAsync()).ToList();
+        aptos = colaboradores.Count(c => c.StatusGeral == StatusGeral.Apto);
+        alertas = colaboradores.Count(c => c.StatusGeral == StatusGeral.Alerta);
+        inaptos = colaboradores.Count(c => c.StatusGeral == StatusGeral.Inapto);
+        isLoading = false;
+    }
+
+    private string ObterClasseStatus(StatusGeral status)
+    {
+        return status switch
+        {
+            StatusGeral.Apto => "success",
+            StatusGeral.Alerta => "warning",
+            _ => "danger"
+        };
+    }
+}
