@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sgir-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SGIR_Pass123!
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - sgir-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SGIR_Pass123! -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # SGIR Web Application
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sgir-webapp
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=sgir2025
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/sgir.pfx
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=SGIR_DB;User Id=sa;Password=SGIR_Pass123!;TrustServerCertificate=true;MultipleActiveResultSets=true
+    ports:
+      - "5000:80"
+      - "5001:443"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - sgir-network
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:
+    driver: local
+
+networks:
+  sgir-network:
+    driver: bridge
