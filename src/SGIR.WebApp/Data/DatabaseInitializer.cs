@@ -409,5 +409,63 @@ public static class DatabaseInitializer
 
         context.ComprasAutomaticas.AddRange(compras);
         await context.SaveChangesAsync();
+        
+        // =====================================================================
+        // IMPORTAÇÃO AUTOMÁTICA DOS CATÁLOGOS SINAPI E FERRAMENTAS MANUAIS
+        // =====================================================================
+        Console.WriteLine("📦 Checking for catalog import file...");
+        
+        var catalogSqlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "seed-catalogos.sql");
+        
+        if (File.Exists(catalogSqlPath))
+        {
+            Console.WriteLine($"✅ Found catalog file: {catalogSqlPath}");
+            Console.WriteLine("📥 Importing 117+ professional items from SINAPI and tool catalogs...");
+            
+            try
+            {
+                var catalogSql = await File.ReadAllTextAsync(catalogSqlPath);
+                
+                // Divide em comandos individuais (por ponto-e-vírgula)
+                var commands = catalogSql
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(c => c.Trim())
+                    .Where(c => !string.IsNullOrWhiteSpace(c) && 
+                                !c.StartsWith("--") && 
+                                c.Contains("INSERT INTO", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                
+                Console.WriteLine($"   Found {commands.Count} INSERT commands");
+                
+                int imported = 0;
+                foreach (var command in commands)
+                {
+                    try
+                    {
+                        await context.Database.ExecuteSqlRawAsync(command + ";");
+                        imported++;
+                    }
+                    catch (Exception cmdEx)
+                    {
+                        Console.WriteLine($"   ⚠️  Warning: Failed to execute command: {cmdEx.Message}");
+                        // Continue com próximo comando
+                    }
+                }
+                
+                Console.WriteLine($"✅ Successfully imported {imported} catalog items!");
+                Console.WriteLine("✅ Database now contains professional tools, EPIs, and SINAPI materials!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error importing catalogs: {ex.Message}");
+                Console.WriteLine("   The application will continue with basic seed data.");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"ℹ️  Catalog file not found: {catalogSqlPath}");
+            Console.WriteLine("   To import 117+ professional items, run: database\\import-sem-sqlite3.ps1");
+            Console.WriteLine("   Or install SQLite3 and run: database\\import-to-sqlite.ps1");
+        }
     }
 }
