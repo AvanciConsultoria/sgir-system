@@ -5,120 +5,347 @@
 
 <PageTitle>Projetos - SGIR</PageTitle>
 
-<div class="page-hero">
-    <h1>Projetos</h1>
-    <p>Visão rápida das ordens de serviço, prazos e status.</p>
-</div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h3>📋 Projetos (OS)</h3>
+        <button class="btn btn-primary" @onclick="AbrirModal">
+            ➕ Novo Projeto
+        </button>
+    </div>
+    <div class="card-body">
+        @if (isLoading)
+        {
+            <div class="text-center">
+                <p>Carregando projetos...</p>
+            </div>
+        }
+        else if (!projetos.Any())
+        {
+            <div class="alert alert-info">
+                <strong>ℹ️ Nenhum projeto cadastrado</strong>
+                <p style="margin: 0.5rem 0 0 0;">
+                    Clique em "Novo Projeto" para adicionar uma ordem de serviço.
+                </p>
+            </div>
+        }
+        else
+        {
+            <!-- Estatísticas -->
+            <div class="stats-grid mb-4">
+                <div class="stat-card blue">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Total de Projetos</div>
+                        <div class="stat-value">@projetos.Count()</div>
+                    </div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Em Andamento</div>
+                        <div class="stat-value">@projetos.Count(p => p.Status == "Em andamento")</div>
+                    </div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Planejamento</div>
+                        <div class="stat-value">@projetos.Count(p => p.Status == "Planejamento")</div>
+                    </div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Concluídos</div>
+                        <div class="stat-value">@projetos.Count(p => p.Status == "Concluído")</div>
+                    </div>
+                </div>
+            </div>
 
-@if (isLoading)
-{
-    <div class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-3 text-muted">Carregando projetos...</p>
-    </div>
-}
-else if (!projetos.Any())
-{
-    <div class="empty-state">
-        <h5>Nenhum projeto cadastrado</h5>
-        <p>Use a importação de Excel para carregar as OS da planilha exemplo.</p>
-        <a class="btn btn-primary mt-3" href="/importar">Importar planilha</a>
-    </div>
-}
-else
-{
-    <div class="summary-grid mb-3">
-        <div class="summary-card">
-            <div class="label">Projetos ativos</div>
-            <div class="value">@ativos</div>
-            <div class="pill"><span class="oi oi-media-play"></span> em andamento</div>
-        </div>
-        <div class="summary-card">
-            <div class="label">Em atraso</div>
-            <div class="value text-warning">@atrasados</div>
-            <div class="pill"><span class="oi oi-warning"></span> verificar prazo</div>
-        </div>
-        <div class="summary-card">
-            <div class="label">Concluídos</div>
-            <div class="value text-success">@concluidos</div>
-            <div class="pill"><span class="oi oi-check"></span> entregues</div>
-        </div>
-        <div class="summary-card">
-            <div class="label">Pendências</div>
-            <div class="value text-info">@pendentes</div>
-            <div class="pill"><span class="oi oi-people"></span> aguardando recursos</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Lista de projetos</span>
-            <a class="btn btn-sm btn-outline-light" href="/gap-analysis"><span class="oi oi-chart"></span> Rodar análise de déficit</a>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table mb-0 align-middle">
+            <!-- Tabela de Projetos -->
+            <div class="table-container">
+                <table class="table">
                     <thead>
                         <tr>
-                            <th>OS</th>
-                            <th>Atividade</th>
+                            <th>OS ID</th>
+                            <th>Nome da Atividade</th>
                             <th>Local</th>
                             <th>Status</th>
-                            <th>Prazo</th>
-                            <th>Início</th>
+                            <th>Data Início</th>
+                            <th>Prazo (dias)</th>
+                            <th>Fim Previsto</th>
+                            <th>Colaboradores</th>
+                            <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var projeto in projetos.OrderByDescending(p => p.DataInicio ?? DateTime.MinValue))
+                        @foreach (var projeto in projetos)
                         {
                             <tr>
-                                <td class="fw-bold">@projeto.Id</td>
-                                <td>@projeto.NomeAtividade</td>
+                                <td>
+                                    <strong style="color: var(--primary-blue);">OS-@projeto.Id</strong>
+                                </td>
+                                <td>
+                                    <strong>@projeto.NomeAtividade</strong>
+                                </td>
                                 <td>@projeto.Local</td>
                                 <td>
-                                    <span class="badge-soft @ObterClasseStatus(projeto.Status)">@projeto.Status</span>
+                                    @if (projeto.Status == "Em andamento")
+                                    {
+                                        <span class="badge badge-success">⏳ @projeto.Status</span>
+                                    }
+                                    else if (projeto.Status == "Planejamento")
+                                    {
+                                        <span class="badge badge-warning">📅 @projeto.Status</span>
+                                    }
+                                    else if (projeto.Status == "Concluído")
+                                    {
+                                        <span class="badge badge-info">✅ @projeto.Status</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-primary">@projeto.Status</span>
+                                    }
                                 </td>
-                                <td>@(projeto.PrazoDias == 0 ? "--" : $"{projeto.PrazoDias} dias")</td>
-                                <td>@(projeto.DataInicio?.ToShortDateString() ?? "--")</td>
+                                <td>@projeto.DataInicio.ToString("dd/MM/yyyy")</td>
+                                <td style="text-align: center;">@projeto.PrazoDias</td>
+                                <td>
+                                    @if (projeto.DataFimPrevista.HasValue)
+                                    {
+                                        <span>@projeto.DataFimPrevista.Value.ToString("dd/MM/yyyy")</span>
+                                        @if (projeto.DataFimPrevista.Value < DateTime.Today && projeto.Status != "Concluído")
+                                        {
+                                            <span class="badge badge-danger" style="margin-left: 0.5rem;">⚠️ Atrasado</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @{
+                                        var alocacoes = projeto.Alocacoes?.Count() ?? 0;
+                                    }
+                                    @if (alocacoes > 0)
+                                    {
+                                        <span class="badge badge-primary">👥 @alocacoes pessoa(s)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Nenhum</span>
+                                    }
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="flex gap-1" style="justify-content: center;">
+                                        <button class="btn btn-sm btn-outline" @onclick="() => EditarProjeto(projeto)">
+                                            ✏️
+                                        </button>
+                                        <a href="/gap-analysis?projetoId=@projeto.Id" class="btn btn-sm btn-warning">
+                                            📊
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal -->
+@if (mostrarModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;" @onclick="FecharModal">
+        <div class="card" style="width: 800px; max-width: 90%; max-height: 90vh; overflow-y: auto;" @onclick:stopPropagation="true">
+            <div class="card-header">
+                <h4>@(projetoEditando == null ? "Novo Projeto" : $"Editar Projeto OS-{projetoEditando.Id}")</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Nome da Atividade *</label>
+                    <input type="text" 
+                           class="form-control" 
+                           @bind="nomeAtividade" 
+                           placeholder="Ex: Retrofit de prensa hidráulica" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="form-group">
+                        <label class="form-label">Local *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               @bind="local" 
+                               placeholder="Ex: Planta Curitiba" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Prazo (dias) *</label>
+                        <input type="number" 
+                               class="form-control" 
+                               @bind="prazoDias" 
+                               min="1" 
+                               placeholder="30" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="form-group">
+                        <label class="form-label">Data de Início *</label>
+                        <input type="date" 
+                               class="form-control" 
+                               @bind="dataInicio" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control form-select" @bind="status">
+                            <option value="Planejamento">📅 Planejamento</option>
+                            <option value="Em andamento">⏳ Em andamento</option>
+                            <option value="Pausado">⏸️ Pausado</option>
+                            <option value="Concluído">✅ Concluído</option>
+                            <option value="Cancelado">❌ Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Alocar Colaboradores</label>
+                    <select class="form-control form-select" multiple size="5" @bind="colaboradoresSelecionados">
+                        @foreach (var colaborador in colaboradores)
+                        {
+                            <option value="@colaborador.Cpf">
+                                @colaborador.Nome - @colaborador.Funcao (@colaborador.StatusGeral)
+                            </option>
+                        }
+                    </select>
+                    <small class="text-muted">Segure Ctrl/Cmd para selecionar múltiplos colaboradores</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Recursos Necessários</label>
+                    <select class="form-control form-select" multiple size="5" @bind="recursosSelecionados">
+                        @foreach (var item in itensEstoque)
+                        {
+                            <option value="@item.Id">
+                                @item.Descricao (@item.EstoqueAtual @item.Unidade disponível)
+                            </option>
+                        }
+                    </select>
+                    <small class="text-muted">Segure Ctrl/Cmd para selecionar múltiplos recursos</small>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="flex justify-between">
+                    <button class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
+                    <button class="btn btn-primary" @onclick="SalvarProjeto">
+                        💾 Salvar Projeto
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 }
 
 @code {
-    private List<Projeto> projetos = new();
     private bool isLoading = true;
-    private int ativos;
-    private int concluidos;
-    private int atrasados;
-    private int pendentes;
+    private bool mostrarModal = false;
+    private List<Projeto> projetos = new();
+    private List<Colaborador> colaboradores = new();
+    private List<ItemEstoque> itensEstoque = new();
+    private Projeto? projetoEditando = null;
+
+    // Campos do formulário
+    private string nomeAtividade = "";
+    private string local = "";
+    private int prazoDias = 30;
+    private DateTime dataInicio = DateTime.Today;
+    private string status = "Planejamento";
+    private List<string> colaboradoresSelecionados = new();
+    private List<int> recursosSelecionados = new();
 
     protected override async Task OnInitializedAsync()
     {
-        projetos = (await UnitOfWork.Projetos.GetAllAsync()).ToList();
-        ativos = projetos.Count(p => p.Status != "Concluído" && p.Status != "Cancelado");
-        concluidos = projetos.Count(p => p.Status == "Concluído");
-        pendentes = projetos.Count(p => p.Status == "Planejamento" || p.Status == "Pendente");
-
-        atrasados = projetos.Count(p =>
-            p.DataFimPrevista.HasValue && p.DataFimPrevista.Value.Date < DateTime.Today &&
-            p.Status != "Concluído" && p.Status != "Cancelado");
-
-        isLoading = false;
+        await CarregarDados();
     }
 
-    private string ObterClasseStatus(string status)
+    private async Task CarregarDados()
     {
-        return status switch
+        try
         {
-            "Concluído" => "success",
-            "Cancelado" => "danger",
-            "Planejamento" => "info",
-            _ => "warning"
-        };
+            isLoading = true;
+            
+            projetos = (await UnitOfWork.Projetos.GetAllAsync()).OrderByDescending(p => p.Id).ToList();
+            colaboradores = (await UnitOfWork.Colaboradores.GetAllAsync()).OrderBy(c => c.Nome).ToList();
+            itensEstoque = (await UnitOfWork.ItensEstoque.GetAllAsync()).OrderBy(i => i.Descricao).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar projetos: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void AbrirModal()
+    {
+        projetoEditando = null;
+        LimparFormulario();
+        mostrarModal = true;
+    }
+
+    private void EditarProjeto(Projeto projeto)
+    {
+        projetoEditando = projeto;
+        nomeAtividade = projeto.NomeAtividade;
+        local = projeto.Local;
+        prazoDias = projeto.PrazoDias;
+        dataInicio = projeto.DataInicio;
+        status = projeto.Status ?? "Planejamento";
+        mostrarModal = true;
+    }
+
+    private async Task SalvarProjeto()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(nomeAtividade) || string.IsNullOrWhiteSpace(local))
+            {
+                Console.WriteLine("Preencha todos os campos obrigatórios");
+                return;
+            }
+
+            // TODO: Implementar salvamento real
+            Console.WriteLine($"Salvar projeto: {nomeAtividade}");
+            
+            FecharModal();
+            await CarregarDados();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao salvar projeto: {ex.Message}");
+        }
+    }
+
+    private void FecharModal()
+    {
+        mostrarModal = false;
+        projetoEditando = null;
+        LimparFormulario();
+    }
+
+    private void LimparFormulario()
+    {
+        nomeAtividade = "";
+        local = "";
+        prazoDias = 30;
+        dataInicio = DateTime.Today;
+        status = "Planejamento";
+        colaboradoresSelecionados.Clear();
+        recursosSelecionados.Clear();
     }
 }

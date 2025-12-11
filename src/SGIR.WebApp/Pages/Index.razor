@@ -1,5 +1,8 @@
 @page "/"
 @page "/dashboard"
+@using SGIR.Core.Interfaces
+@using SGIR.Core.Enums
+@inject IUnitOfWork UnitOfWork
 
 <PageTitle>Dashboard - SGIR</PageTitle>
 
@@ -11,12 +14,12 @@
             <div class="stat-label">Projetos Ativos</div>
             <div class="stat-value">@totalProjetos</div>
             <div class="stat-trend up">
-                ↗ +2 este mês
+                ↗ Gestão de obras
             </div>
         </div>
     </div>
 
-    <div class="stat-card success">
+    <div class="stat-card @(colaboradoresInaptos > 0 ? "danger" : "success")">
         <div class="stat-icon">👥</div>
         <div class="stat-info">
             <div class="stat-label">Colaboradores Aptos</div>
@@ -34,7 +37,7 @@
         </div>
     </div>
 
-    <div class="stat-card warning">
+    <div class="stat-card @(itensCriticos > 0 ? "warning" : "success")">
         <div class="stat-icon">📦</div>
         <div class="stat-info">
             <div class="stat-label">Itens de Estoque</div>
@@ -52,7 +55,7 @@
         </div>
     </div>
 
-    <div class="stat-card danger">
+    <div class="stat-card @(comprasPendentes > 0 ? "danger" : "success")">
         <div class="stat-icon">🛒</div>
         <div class="stat-info">
             <div class="stat-label">Compras Pendentes</div>
@@ -187,6 +190,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao carregar dashboard: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
         }
         finally
         {
@@ -196,15 +200,35 @@
 
     private async Task CarregarDados()
     {
-        // Mock data for now - will be replaced with actual database queries
-        await Task.Delay(500); // Simulate loading
+        try
+        {
+            // Carregar dados reais do banco
+            var projetos = await UnitOfWork.Projetos.GetAllAsync();
+            totalProjetos = projetos.Count();
 
-        totalProjetos = 5;
-        totalColaboradores = 10;
-        colaboradoresAptos = 8;
-        colaboradoresInaptos = 2;
-        totalItensEstoque = 50;
-        itensCriticos = 3;
-        comprasPendentes = 1;
+            var colaboradores = await UnitOfWork.Colaboradores.GetAllAsync();
+            totalColaboradores = colaboradores.Count();
+            colaboradoresAptos = colaboradores.Count(c => c.StatusGeral == StatusGeral.Apto);
+            colaboradoresInaptos = colaboradores.Count(c => c.StatusGeral == StatusGeral.Inapto);
+
+            var itensEstoque = await UnitOfWork.ItensEstoque.GetAllAsync();
+            totalItensEstoque = itensEstoque.Count();
+            itensCriticos = itensEstoque.Count(i => i.EstoqueAbaixoMinimo());
+
+            var compras = await UnitOfWork.ComprasAutomaticas.GetAllAsync();
+            comprasPendentes = compras.Count(c => c.Status == StatusCompra.Pendente);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar dados do banco: {ex.Message}");
+            // Em caso de erro, usar dados padrão
+            totalProjetos = 0;
+            totalColaboradores = 0;
+            colaboradoresAptos = 0;
+            colaboradoresInaptos = 0;
+            totalItensEstoque = 0;
+            itensCriticos = 0;
+            comprasPendentes = 0;
+        }
     }
 }
